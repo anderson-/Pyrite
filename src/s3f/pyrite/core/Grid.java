@@ -12,8 +12,8 @@ import java.util.Collection;
  *
  * @author antunes
  */
-public interface Grid {
+public abstract class Grid {
     
-    public Collection<int[]> getNeighborhood(int... pos);
+    public abstract Collection<int[]> getNeighborhood(int... pos);
     
 }

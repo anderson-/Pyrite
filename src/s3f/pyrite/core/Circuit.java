@@ -5,6 +5,7 @@
  */
 package s3f.pyrite.core;
 
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -13,12 +14,16 @@ import java.util.Vector;
  */
 public class Circuit {
 
-    private final Vector<Component> nodes;
     private final Vector<Connection> edges;
+    private final Vector<Component> nodes;
+    private final Vector<Component> inputs;
+    private final Vector<Component> outputs;
 
     public Circuit() {
-        nodes = new Vector<>();
         edges = new Vector<>();
+        nodes = new Vector<>();
+        inputs = new Vector<>();
+        outputs = new Vector<>();
     }
 
     public void addComponent(Component c) {
@@ -29,12 +34,8 @@ public class Circuit {
         return null;
     }
 
-    public Component getComponent(int index) {
-        return nodes.get(index);
-    }
-
-    public int getComponentCount() {
-        return nodes.size();
+    public List<Component> getComponents() {
+        return nodes;
     }
 
     public void removeComponent(Component c) {
@@ -49,16 +50,8 @@ public class Circuit {
         edges.add(c);
     }
 
-    public Connection getConnection(String name) {
-        return null;
-    }
-
-    public Connection getConnection(int index) {
-        return edges.get(index);
-    }
-
-    public int getConnectionCount() {
-        return edges.size();
+    public List<Connection> getConnections() {
+        return edges;
     }
 
     public void removeConnection(Connection c) {
@@ -68,19 +61,19 @@ public class Circuit {
     public boolean contains(Connection c) {
         return edges.contains(c);
     }
-    
-    public void analyzeAndOptimize(){
-        
-    }
-    
-    public void clearOptimizations(){
-        
+
+    public void analyzeAndOptimize() {
+
     }
 
-    public void saveModifications(){
-        
+    public void clearOptimizations() {
+
     }
-    
+
+    public void saveModifications() {
+
+    }
+
     public void revertModifications() {
 
     }
@@ -91,6 +84,19 @@ public class Circuit {
 
     public void load(String text) {
 
+    }
+
+    public int getDisconectedConnections() {
+        return 0;
+    }
+
+    public int calcVolume() {
+        return 0;
+    }
+
+    public static Circuit union(Circuit[] cset, String... joints) {
+        Circuit nc = new Circuit();
+        return nc;
     }
 
 }
