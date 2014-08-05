@@ -110,7 +110,7 @@ public class HDIntervalTree<Type> {//Higher Dimension
         }
     }
 
-    public void addPoint(long[] p, Type data) {
+    public void addPoint(Type data, long... p) {
         if (p.length < dim) {
             throw new Error("invalid point length");
         }
@@ -154,7 +154,7 @@ public class HDIntervalTree<Type> {//Higher Dimension
             for (int j = 0; j < dim; j++) {
                 p[j] = rand.nextInt(maxValue);
             }
-            tree.addPoint(p, i);
+            tree.addPoint(i, p);
         }
 
 //        {
@@ -163,7 +163,7 @@ public class HDIntervalTree<Type> {//Higher Dimension
 //        }
         long t = System.currentTimeMillis();
         List<Integer> res = tree.get(new long[]{0, 0, 0}, new long[]{0, 0, 0});
-        System.out.println("t:" + (System.currentTimeMillis() - t)*10);
+        System.out.println("t:" + (System.currentTimeMillis() - t) * 10);
         for (int r : res) {
             System.out.println(r);
         }

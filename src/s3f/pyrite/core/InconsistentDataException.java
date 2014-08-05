@@ -5,14 +5,15 @@
  */
 
 package s3f.pyrite.core;
+
 /**
  *
- * @author antunes
+ * @author anderson
  */
-public class CircuitBuilder {
+class InconsistentDataException extends RuntimeException {
 
-    public Circuit build() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public InconsistentDataException(String string) {
+        super(string);
     }
     
 }

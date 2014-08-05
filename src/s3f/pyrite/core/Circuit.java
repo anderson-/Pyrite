@@ -14,23 +14,47 @@ import java.util.Vector;
  */
 public class Circuit {
 
+    public static final int INPUT = 1;
+    public static final int OUTPUT = 2;
+
     private final Vector<Connection> edges;
     private final Vector<Component> nodes;
     private final Vector<Component> inputs;
     private final Vector<Component> outputs;
+    private final Vector<Circuit> subCircuits;
 
     public Circuit() {
         edges = new Vector<>();
         nodes = new Vector<>();
         inputs = new Vector<>();
         outputs = new Vector<>();
+        subCircuits = new Vector<>();
     }
 
     public void addComponent(Component c) {
+        if (!nodes.contains(c)) {
+            nodes.add(c);
+            for (Connection con : c.getConnections()) {
+                addConnection(con);
+            }
+        }
+    }
+
+    public void addComponent(Component c, int type) {
+        if (type == INPUT) {
+            inputs.add(c);
+        } else if (type == OUTPUT) {
+            outputs.add(c);
+        }
         nodes.add(c);
     }
 
     public Component getComponent(String name) {
+        for (Component c : nodes) {
+            if (name.equals(c.getName())) {
+                return c;
+            }
+        }
         return null;
     }
 
@@ -46,8 +70,10 @@ public class Circuit {
         return nodes.contains(c);
     }
 
-    public void addConnection(Component a, Component b, Connection c) {
-        edges.add(c);
+    public void addConnection(Connection c) {
+        if (!edges.contains(c)) {
+            edges.add(c);
+        }
     }
 
     public List<Connection> getConnections() {

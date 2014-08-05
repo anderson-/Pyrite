@@ -8,6 +8,9 @@ import javax.swing.UIManager;
 import s3f.core.plugin.PluginBuilder;
 import s3f.core.ui.GUIBuilder;
 import static s3f.core.ui.MainUI.createLookAndFeel;
+import s3f.pyrite.types.CircuitModule;
+import s3f.pyrite.types.ModularCircuit;
+import s3f.pyrite.types.Position3DFile;
 import s3f.util.ColorUtils;
 import s3f.util.RandomColor;
 import s3f.util.splashscreen.SimpleSplashScreen;
@@ -35,7 +38,9 @@ public class Builder extends PluginBuilder {
 //        o.getData().setProperty("procedure", new If());
 //        pm.registerFactory(o);
 //        
-//        pm.registerFactory(Flowchart.FLOWCHART_FILES);
+        pm.registerFactory(ModularCircuit.FLOWCHART_FILES);
+        pm.registerFactory(CircuitModule.FLOWCHART_FILES);
+        pm.registerFactory(Position3DFile.FLOWCHART_FILES);
     }
 
 }

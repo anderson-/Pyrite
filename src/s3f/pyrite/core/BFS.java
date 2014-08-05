@@ -3,16 +3,28 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package s3f.pyrite.core;
+
 /**
  *
- * @author antunes
+ * @author anderson
  */
-public class CircuitBuilder {
+public class BFS {
 
-    public Circuit build() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public static void BFS(Graph g, Vertex s) {
+
     }
-    
+
+    private static interface Graph {
+
+    }
+
+    private static interface Vertex {
+
+    }
+
+    private static interface Edge {
+
+    }
+
 }

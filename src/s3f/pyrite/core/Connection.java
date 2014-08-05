@@ -11,6 +11,9 @@ package s3f.pyrite.core;
  */
 public class Connection extends Fixable {
 
+    private static int ID = 0;
+    //id
+    private int uid;
     private Component a;
     private Component b;
     private String terminalA;
@@ -18,7 +21,9 @@ public class Connection extends Fixable {
     private String subComponent;
     private boolean satisfied;
 
+    @Deprecated //adicionar manualmente
     public Connection(String subComponent) {
+        uid = ID++;
         this.subComponent = subComponent;
         satisfied = false;
     }
@@ -29,6 +34,8 @@ public class Connection extends Fixable {
         this.b = b;
         this.terminalA = terminalA;
         this.terminalB = terminalB;
+        a.addConnection(this);
+        b.addConnection(this);
     }
 
     public Connection(Component a, Component b, String subComponent) {
@@ -93,15 +100,22 @@ public class Connection extends Fixable {
 
     @Override
     public String toString() {
-        return a + " [" + terminalA + "] --(" + subComponent + ")-> [" + terminalB + "] " + b + " (" + satisfied + ")";
+        return a.getUID() + (terminalA.isEmpty() ? "" : " [" + terminalA + "]") + (subComponent.isEmpty() ? " -> " : " --(" + subComponent + ")-> ") + (terminalB.isEmpty() ? "" : "[" + terminalB + "] ") + b.getUID();
     }
 
-    public Component getOtherComponent(Component v) {
-        if (a == v) {
+    public Component getOtherComponent(Component c) {
+        if (a == c) {
             return b;
         } else {
             return a;
         }
     }
 
+    public void replace(Component c, Component other) {
+        if (a == c) {
+            setB(other);
+        } else {
+            setA(other);
+        }
+    }
 }
