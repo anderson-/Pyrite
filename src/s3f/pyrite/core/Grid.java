@@ -14,10 +14,9 @@ import java.util.List;
  */
 public abstract class Grid {
 
-    public static int X = 10;
-    public static int Y = 10;
-    public static int Z = 10;
-
+//    public static int X = 10;
+//    public static int Y = 10;
+//    public static int Z = 10;
     public static final Grid SIMPLE = new Grid() {
         @Override
         public ArrayList<int[]> getNeighborhood(int... pos) {
@@ -30,11 +29,11 @@ public abstract class Grid {
                         int y = pos[1] + j;
                         int z = pos[2] + k;
 
-                        if (x >= 0 && y >= 0 && z >= 0 && x < X && y < Y && z < Z) {
-                            if (Math.abs(i) + Math.abs(j) + Math.abs(k) == 1) {
-                                nd.add(new int[]{x, y, z});
-                            }
+//                        if (x >= 0 && y >= 0 && z >= 0 && x < X && y < Y && z < Z) {
+                        if (Math.abs(i) + Math.abs(j) + Math.abs(k) == 1) {
+                            nd.add(new int[]{x, y, z});
                         }
+//                        }
                     }
                 }
             }
@@ -54,12 +53,12 @@ public abstract class Grid {
                         int y = pos[1] + j;
                         int z = pos[2] + k;
 
-                        if (x >= 0 && y >= 0 && z >= 0 && x < X && y < Y && z < Z) {
-                            if (Math.abs(i) + Math.abs(j) + Math.abs(k) <= 2) {
-                                //if (Math.abs(i) + Math.abs(j) + Math.abs(k) > 2) {
-                                nd.add(new int[]{x, y, z});
-                            }
+//                        if (x >= 0 && y >= 0 && z >= 0 && x < X && y < Y && z < Z) {
+                        if (Math.abs(i) + Math.abs(j) + Math.abs(k) <= 2) {
+                            //if (Math.abs(i) + Math.abs(j) + Math.abs(k) > 2) {
+                            nd.add(new int[]{x, y, z});
                         }
+//                        }
                     }
                 }
             }
@@ -79,13 +78,13 @@ public abstract class Grid {
                         int y = pos[1] + j;
                         int z = pos[2] + k;
 
-                        if (x >= 0 && y >= 0 && z >= 0 && x < X && y < Y && z < Z) {
-                            //if (Math.abs(i) + Math.abs(j) + Math.abs(k) <= 2) { //apenas planos
-                            if (Math.abs(i) + Math.abs(j) + Math.abs(k) != 0) { //3d
-                                //if (Math.abs(i) + Math.abs(j) + Math.abs(k) > 2) {
-                                nd.add(new int[]{x, y, z});
-                            }
+//                        if (x >= 0 && y >= 0 && z >= 0 && x < X && y < Y && z < Z) {
+                        //if (Math.abs(i) + Math.abs(j) + Math.abs(k) <= 2) { //apenas planos
+                        if (Math.abs(i) + Math.abs(j) + Math.abs(k) != 0) { //3d
+                            //if (Math.abs(i) + Math.abs(j) + Math.abs(k) > 2) {
+                            nd.add(new int[]{x, y, z});
                         }
+//                        }
                     }
                 }
             }
@@ -98,9 +97,9 @@ public abstract class Grid {
         int y = pos[1];
         int z = pos[2];
 
-        if (x >= 0 && y >= 0 && z >= 0 && x < X && y < Y && z < Z) {
-            nd.add(pos);
-        }
+//        if (x >= 0 && y >= 0 && z >= 0 && x < X && y < Y && z < Z) {
+        nd.add(pos);
+//        }
     }
 
     public static final Grid HEX = new Grid() {
@@ -196,11 +195,11 @@ public abstract class Grid {
                         int y = pos[1] + j;
                         int z = pos[2] + k;
 
-                        if (x >= 0 && y >= 0 && z >= 0 && x < X && y < Y && z < Z) {
-                            if (Math.abs(i) + Math.abs(j) + Math.abs(k) != 0 && a.get(e)) {
-                                nd.add(new int[]{x, y, z});
-                            }
+//                        if (x >= 0 && y >= 0 && z >= 0 && x < X && y < Y && z < Z) {
+                        if (Math.abs(i) + Math.abs(j) + Math.abs(k) != 0 && a.get(e)) {
+                            nd.add(new int[]{x, y, z});
                         }
+//                        }
                         e++;
                     }
                 }

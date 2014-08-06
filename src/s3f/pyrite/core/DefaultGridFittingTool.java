@@ -378,23 +378,23 @@ public class DefaultGridFittingTool implements GridFittingTool {
 
                     int distanceThroughU = distU + 1;
                     if (distanceThroughU < distV && distV != 12000) {
-//                        if (v == this.target) {
-//                            minDistance = distanceThroughU;
-//                        }
-//                        vertexQueue.remove((Integer) v);
-//                        if (distanceThroughU <= minDistance) {
-//                            distances.put(v, distanceThroughU);
-//                            prev.put(v, u);
-//                            vertexQueue.add(v);
-//                        } else {
-//                            distances.put(v, 12000);
-//                        }
-                        {
-                            vertexQueue.remove((Integer) v);
+                        if (v == this.target) {
+                            minDistance = distanceThroughU;
+                        }
+                        vertexQueue.remove((Integer) v);
+                        if (distanceThroughU <= minDistance) {
                             distances.put(v, distanceThroughU);
                             prev.put(v, u);
                             vertexQueue.add(v);
+                        } else {
+                            distances.put(v, 12000);
                         }
+//                        {
+//                            vertexQueue.remove((Integer) v);
+//                            distances.put(v, distanceThroughU);
+//                            prev.put(v, u);
+//                            vertexQueue.add(v);
+//                        }
                     }
                 }
             }

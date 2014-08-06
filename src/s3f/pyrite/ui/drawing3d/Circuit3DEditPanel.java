@@ -99,22 +99,19 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
                             g3d.fill(Color.yellow.getRGB());
                             break;
                         default:
-                            if (c.getName().length() == 1) {
-
-                                if (c.whut instanceof SwitchElm) {
-                                    SwitchElm se = (SwitchElm) c.whut;
-                                    if (se.getPosition() == 0) {
-                                        g3d.fill(Color.RED.getRGB());
-                                    } else {
-                                        g3d.fill(Color.GREEN.getRGB());
-                                    }
-                                } else if (c.whut instanceof LogicOutputElm) {
-                                    LogicOutputElm le = (LogicOutputElm) c.whut;
-                                    if ("L".equals(le.getValue())) {
-                                        g3d.fill(Color.RED.getRGB());
-                                    } else {
-                                        g3d.fill(Color.GREEN.getRGB());
-                                    }
+                            if (c.whut instanceof SwitchElm) {
+                                SwitchElm se = (SwitchElm) c.whut;
+                                if (se.getPosition() == 0) {
+                                    g3d.fill(Color.RED.getRGB());
+                                } else {
+                                    g3d.fill(Color.GREEN.getRGB());
+                                }
+                            } else if (c.whut instanceof LogicOutputElm) {
+                                LogicOutputElm le = (LogicOutputElm) c.whut;
+                                if ("L".equals(le.getValue())) {
+                                    g3d.fill(Color.DARK_GRAY.getRGB());
+                                } else {
+                                    g3d.fill(Color.CYAN.darker().brighter().getRGB());
                                 }
                             } else {
                                 g3d.fill(Color.PINK.getRGB());
