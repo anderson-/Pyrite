@@ -10,14 +10,17 @@ import com.falstad.circuit.CircuitNode;
 import com.falstad.circuit.CircuitNodeLink;
 import com.falstad.circuit.CircuitSimulator;
 import edu.uci.ics.jung.algorithms.layout.KKLayout;
+import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.SparseMultigraph;
 import edu.uci.ics.jung.graph.util.Pair;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
 import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
+import java.awt.BasicStroke;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Stroke;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -29,6 +32,7 @@ import javax.swing.JFrame;
 import javax.swing.JRootPane;
 import net.infonode.docking.DockingWindow;
 import net.infonode.docking.DockingWindowAdapter;
+import org.apache.commons.collections15.Transformer;
 import quickp3d.DrawingPanel3D.Scene3D;
 import s3f.core.plugin.Data;
 import s3f.core.plugin.Plugabble;
@@ -54,15 +58,15 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
     private TextFile textFile;
     private Circuit3DEditPanel drawingPanel;
     private Scene3D applet;
-
+    
     JRootPane p = new JRootPane();
-
+    
     public Editor3D() {
         data = new Data("editorTab", "s3f.core.code", "Editor Tab");
         createApplet();
         TabProperty.put(data, "Editor", null, "Editor de código", p);
     }
-
+    
     private void createApplet() {
         p.getContentPane().removeAll();
         if (drawingPanel == null) {
@@ -74,7 +78,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         applet.init();
         p.getContentPane().add(applet);
     }
-
+    
     @Override
     public void setContent(Element content) {
         if (content instanceof TextFile) {
@@ -90,12 +94,14 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 //            System.out.println(">>" + dumpCircuit(circuit, true));
 
             drawingPanel.setCircuit(circuit);
-
+            
+            showGraph(createGraph(circuit), true);
+            
             data.setProperty(TabProperty.TITLE, content.getName());
             data.setProperty(TabProperty.ICON, content.getIcon());
         }
     }
-
+    
     private static CircuitSimulator createDummyCS(String text) {
         JApplet window = new JApplet();
         CircuitSimulator cs = new CircuitSimulator();
@@ -112,14 +118,14 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         cs.updateCircuit(null);
         return cs;
     }
-
+    
     private static Circuit createCircuit(CircuitSimulator cs) {
         Circuit cir = new Circuit();
-
+        
         HashMap<Point, Component> jointMap = new HashMap<>();
         HashMap<CircuitElm, Component> compMap = new HashMap<>();
         HashMap<CircuitElm, ArrayList<CircuitNode>> kMap = new HashMap<>();
-
+        
         for (int i = 0; i < cs.nodeListSize(); i++) {
             CircuitNode node = cs.getCircuitNode(i);
             if (node.internal || node.links.isEmpty()) {
@@ -142,7 +148,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 //                    break;
                 }
             }
-
+            
             if (ts.isEmpty()) {
                 //junta simples
                 Component j = new Component();
@@ -195,7 +201,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                 }
             }
         }
-
+        
         for (Map.Entry<CircuitElm, Component> entry : compMap.entrySet()) {
             CircuitElm t = entry.getKey();
             for (int i = 0; i < t.getPostCount(); i++) {
@@ -251,12 +257,12 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         }
         return cir;
     }
-
+    
     private static Circuit parseString(String text) {
         return createCircuit(createDummyCS(text));
     }
-
-    private static String dumpCircuit(Circuit circuit, boolean show) {
+    
+    private static Graph<String, String> createGraph(Circuit circuit) {
         SparseMultigraph<String, String> graph = new SparseMultigraph<>();
 
         //adiciona vertices
@@ -268,14 +274,18 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         for (Connection c : circuit.getConnections()) {
             graph.addEdge(c.toString(), c.getA().toString(), c.getB().toString());
         }
-
+        return graph;
+    }
+    
+    private static void showGraph(Graph<String, String> graph, boolean show) {
+        
         KKLayout<String, String> layout = new KKLayout(graph);//new FRLayout(graph);
         layout.setSize(new Dimension(400, 400));
-
+        
         if (show) {
             VisualizationViewer<String, String> vv = new VisualizationViewer<>(layout);
             vv.setPreferredSize(new Dimension(400, 400));
-
+            
             vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller());
             vv.getRenderContext().setEdgeLabelTransformer(new ToStringLabeller() {
 //                @Override
@@ -283,6 +293,22 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 //                    String s = v.toString();
 //                    return s.substring(0, s.indexOf('['));
 //                }
+            });
+            
+            vv.setEdgeToolTipTransformer(new ToStringLabeller() {
+                @Override
+                public String transform(Object v) {
+                    String s = v.toString();
+                    return s;
+                }
+            });
+            
+            vv.setVertexToolTipTransformer(new ToStringLabeller() {
+                @Override
+                public String transform(Object v) {
+                    String s = v.toString();
+                    return s;
+                }
             });
             DefaultModalGraphMouse gm = new DefaultModalGraphMouse();
             gm.setMode(ModalGraphMouse.Mode.TRANSFORMING);
@@ -293,17 +319,25 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
             frame.pack();
             frame.setVisible(true);
         }
-
+    }
+    
+    private static String dumpCircuit(Circuit circuit, boolean show) {
+        
+        Graph<String, String> graph = createGraph(circuit);
+        
+        KKLayout<String, String> layout = new KKLayout(graph);//new FRLayout(graph);
+        layout.setSize(new Dimension(400, 400));
+        
         HashMap<String, Point2D> pointMap = new HashMap<>();
         HashMap<String, Component> compMap = new HashMap<>();
-
+        
         for (Component v : circuit.getComponents()) {
             String id = v.toString();
             Point2D p = layout.transform(id);
             pointMap.put(id, p);
             compMap.put(id, v);
         }
-
+        
         ArrayList<String> edges = new ArrayList<>();
         for (Component v : circuit.getComponents()) {
             for (Connection con : v.getConnections()) {
@@ -315,7 +349,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                 }
             }
         }
-
+        
         StringBuilder sb = new StringBuilder();
         sb.append("$ 1 5.0E-6 10 54 5.0\n");
         TreeSet<Pair<String>> ok = new TreeSet<>(new Comparator<Pair<String>>() {
@@ -325,13 +359,13 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                 String f2 = o2.getFirst();
                 String s1 = o1.getSecond();
                 String s2 = o2.getSecond();
-
+                
                 if (f1.equals(f2) && s1.equals(s2)) {
                     return 0;
                 } else if (f1.equals(s2) && s1.equals(f2)) {
                     return 0;
                 }
-
+                
                 return 1;
             }
         });
@@ -342,15 +376,15 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
             String dest = endpoints.getSecond();
             Component v = compMap.get(source);
             Component e = compMap.get(dest);
-
+            
             Connection con = e.getConnection(v);
-
+            
             if (con == null) {
                 System.err.println("ERROR!");
                 System.exit(0);
                 continue;
             }
-
+            
             String c1 = con.getA().toString();
             String c1t = con.getTerminalA();
             String comp = con.getSubComponent();
@@ -370,12 +404,12 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                     continue;
                 }
             } else {
-
+                
             }
-
+            
             String type = "";
             String flags = "";
-
+            
             if (comp.length() > 8) {
                 type = comp.substring(0, comp.indexOf(' '));
                 flags = comp;
@@ -384,7 +418,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                 }
                 System.out.println(type + " - " + flags);
             } else {
-
+                
                 switch (comp) {
                     case "":
                         type = "w";
@@ -427,25 +461,25 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                         System.out.println("not def: " + comp);
                 }
             }
-
+            
             Point2D p1 = pointMap.get(c1);
             Point2D p2 = pointMap.get(c2);
-
+            
             int x1 = ((int) p1.getX() / 10) * 16;
             int x2 = ((int) p2.getX() / 10) * 16;
             int y1 = ((int) p1.getY() / 10) * 16;
             int y2 = ((int) p2.getY() / 10) * 16;
-
+            
             if (v.getData() != null && v.getData().toString().contains("ransistor") && !okt.contains(c1)) {
                 okt.add(c1);
                 sb.append("t " + x1 + " " + y1 + " " + (x1 + 32) + " " + y1 + "  0 1 0.0 0.0 100.0\n");
             }
-
+            
             if (e.getData() != null && "transistor".equals(e.getData().toString()) && !okt.contains(c2)) {
                 okt.add(c2);
                 sb.append("t " + x2 + " " + y2 + " " + (x2 + 32) + " " + y2 + "  0 1 0.0 0.0 100.0\n");
             }
-
+            
             switch (c1t) {
                 case "b":
                     x1 = x1;
@@ -460,7 +494,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                     y1 = y1 + 16;
                     break;
             }
-
+            
             switch (c2t) {
                 case "b":
                     x2 = x2;
@@ -475,11 +509,11 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                     y2 = y2 + 16;
                     break;
             }
-
+            
             if (!type.isEmpty()) {
                 sb.append(type + " " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + flags + "\n");
             }
-
+            
             if (e.getData() != null && e.getData().toString().length() > 8) {
                 comp = e.getData().toString();
                 type = comp.substring(0, comp.indexOf(' '));
@@ -498,15 +532,15 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 //            } else if ("gnd".equals(e.name)) {
 //            }
         }
-
+        
         return sb.toString();
     }
-
+    
     @Override
     public Element getContent() {
         return textFile;
     }
-
+    
     @Override
     public void update() {
 //        EntityManager em = PluginManager.getInstance().createFactoryManager(null);
@@ -519,34 +553,34 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 //        sim.clear();
 //        sim.add(i);
     }
-
+    
     @Override
     public void selected() {
-
+        
     }
-
+    
     @Override
     public void windowShown(DockingWindow dw) {
         createApplet();
     }
-
+    
     @Override
     public void windowHidden(DockingWindow dw) {
         if (applet != null) {
             applet.stop();
         }
     }
-
+    
     @Override
     public Data getData() {
         return data;
     }
-
+    
     @Override
     public void init() {
-
+        
     }
-
+    
     @Override
     public Plugabble createInstance() {
         return new Editor3D();

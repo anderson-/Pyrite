@@ -5,6 +5,7 @@
  */
 package s3f.pyrite.ui.drawing3d;
 
+import java.util.ArrayList;
 import org.apache.commons.math3.linear.RealVector;
 import processing.core.PGraphics;
 import s3f.pyrite.core.Circuit;
@@ -34,7 +35,7 @@ public class CircuitDrawingTool {
 
     public void drawAll(PGraphics g3d) {
         if (circuit != null) {
-            for (Component c : circuit.getComponents()) {
+            for (Component c : new ArrayList<>(circuit.getComponents())) {
                 if (c.getPos() != null) {
                     drawNode(c, g3d);
                 }

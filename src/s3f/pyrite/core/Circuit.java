@@ -81,6 +81,7 @@ public class Circuit {
     }
 
     public void removeConnection(Connection c) {
+        c.setConsumed(true);
         edges.remove(c);
     }
 

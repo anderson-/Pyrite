@@ -74,10 +74,27 @@ public class Connection extends Fixable {
         return terminalB;
     }
 
+    public String getTerminal(Component c) {
+        if (c == a){
+           return terminalA; 
+        } else {
+           return terminalB; 
+        }
+    }
+
     public void setTerminalB(String terminalB) {
         this.terminalB = terminalB;
     }
 
+    @Override
+    public void setConsumed(boolean consumed) {
+        super.setConsumed(consumed);
+        if (consumed){
+            a.removeConnection(this);
+            b.removeConnection(this);
+        }
+    }
+    
     public String getSubComponent() {
         return subComponent;
     }

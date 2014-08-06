@@ -80,46 +80,33 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
                     g3d.popMatrix();
                 }
 
-//                if (c.type != null) {
-//                    switch (c.type) {
-//                        case "transistor":
-//                            g3d.fill(0);
-//                            break;
-//                        case "jj":
-//                            g3d.fill(Color.magenta.getRGB());
-//                            break;
-//                        case "j":
-//                            g3d.fill(Color.WHITE.getRGB());
-//                            break;
-//                        case "&":
-//                            if (c.name == null) {
-//                                g3d.fill(Color.orange.getRGB());
-//                            } else {
-//                                if (c.name.equals("vcc")) {
-//                                    g3d.fill(Color.yellow.getRGB());
-//                                } else if (c.name.equals("gnd")) {
-//                                    g3d.fill(Color.blue.getRGB());
-//                                } else {
-//                                    g3d.fill(Color.orange.getRGB());
-//                                }
-//                            }
-//                            break;
-//                        case "ex":
-//                            g3d.fill(Color.LIGHT_GRAY.getRGB());
-//                            break;
-//                        case "w":
-//                            g3d.fill(Color.CYAN.getRGB());
-//                            break;
-//                        default:
-//                            g3d.fill(Color.PINK.getRGB());
-//                            break;
-//                    }
-//                } else {
-//                    g3d.fill(Color.PINK.getRGB());
-//                    //g3d.fill(1f, 1, (c.uid * 2 / 360f));
-//                }
-                int i = 0;
-                for (Connection con : c.getConnections()) {
+                if (!c.getName().isEmpty()) {
+                    switch (c.getName()) {
+                        case "_":
+                            g3d.fill(Color.LIGHT_GRAY.getRGB());
+                            break;
+                        case "GroundElm":
+                            g3d.fill(Color.blue.getRGB());
+                            break;
+                        case "RailElm":
+                            g3d.fill(Color.yellow.getRGB());
+                            break;
+                        default:
+                            if (c.getName().length() == 1) {
+                                if (c.getName().equals("s")) {
+                                    g3d.fill(Color.MAGENTA.getRGB());
+                                } else {
+                                    g3d.fill(Color.GREEN.getRGB());
+                                }
+                            } else {
+                                g3d.fill(Color.PINK.getRGB());
+                            }
+                            break;
+                    }
+                } else {
+                    g3d.fill(Color.PINK.getRGB());
+                }
+                for (Connection con : new ArrayList<>(c.getConnections())) {
                     Component v = con.getOtherComponent(c);
                     if (!con.isSatisfied()) {
                         g3d.stroke(255, 0, 0);
@@ -142,13 +129,13 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
 //                                g3d.popStyle();
 //                            }
                             String subComponent = con.getSubComponent();
-                            if (!subComponent.isEmpty()) {
+                            if (!subComponent.isEmpty() && !subComponent.startsWith("w")) {
                                 g3d.pushStyle();
                                 g3d.stroke(0);
-                                if (subComponent.contains("res")) {
-                                    if (subComponent.contains("10k")) {
+                                if (subComponent.startsWith("r")) {
+                                    if (subComponent.contains("10000")) {
                                         g3d.fill(180, 180, 0);
-                                    } else if (subComponent.contains("1k")) {
+                                    } else if (subComponent.contains("1000")) {
                                         g3d.fill(255, 255, 0);
                                     } else {
                                         g3d.fill(Color.orange.getRGB());
@@ -174,7 +161,6 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
                             }
                         }
                     }
-                    i++;
                 }
 
                 for (Connection con : c.getConnections()) {
@@ -225,7 +211,7 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
                 }
             }
         };
-        
+
         defaultDrawer.setCircuit(circuit);
         pickerBufferDrawer.setCircuit(circuit);
     }
@@ -299,8 +285,6 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
 //        int p = Circuit.fitnessFunction(n, circuit.getComponents().size(), circuit.getDisconectedConnections(), circuit.calcVolume());
 //        g2d.text("Points: " + p, x, y);
 //        y += 15;
-        g2d.text("P: " + eyeZ + " " + atX + " " + atY + " " + atZ + " " + upX + " " + upY + " " + posX + " " + posY + " " + theta, x, y);
-        y += 15;
         g2d.text("fps: " + (int) scene3D.frameRate, x, y);
         //bottom info
         g2d.textAlign = PApplet.RIGHT;
@@ -369,7 +353,7 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
                         try {
                             int i = print("cubeficating...");
                             DefaultGridFittingTool defaultGridFittingTool = new s3f.pyrite.core.DefaultGridFittingTool();
-                            defaultGridFittingTool.fit(circuit, Grid.SIMPLE3);
+                            defaultGridFittingTool.fit(circuit, Grid.SIMPLE2);
                             print(i, "cubeficating... done.");
                         } catch (ThreadDeath e) {
                             print("break");
