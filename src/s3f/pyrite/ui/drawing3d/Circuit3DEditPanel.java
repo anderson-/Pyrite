@@ -6,6 +6,8 @@
 package s3f.pyrite.ui.drawing3d;
 
 import com.falstad.circuit.CircuitElm;
+import com.falstad.circuit.elements.LogicOutputElm;
+import com.falstad.circuit.elements.SwitchElm;
 import com.falstad.circuit.elements.WireElm;
 import com.jogamp.newt.event.KeyEvent;
 import java.awt.Color;
@@ -98,10 +100,21 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
                             break;
                         default:
                             if (c.getName().length() == 1) {
-                                if (c.getName().equals("s")) {
-                                    g3d.fill(Color.MAGENTA.getRGB());
-                                } else {
-                                    g3d.fill(Color.GREEN.getRGB());
+
+                                if (c.whut instanceof SwitchElm) {
+                                    SwitchElm se = (SwitchElm) c.whut;
+                                    if (se.getPosition() == 0) {
+                                        g3d.fill(Color.RED.getRGB());
+                                    } else {
+                                        g3d.fill(Color.GREEN.getRGB());
+                                    }
+                                } else if (c.whut instanceof LogicOutputElm) {
+                                    LogicOutputElm le = (LogicOutputElm) c.whut;
+                                    if ("L".equals(le.getValue())) {
+                                        g3d.fill(Color.RED.getRGB());
+                                    } else {
+                                        g3d.fill(Color.GREEN.getRGB());
+                                    }
                                 }
                             } else {
                                 g3d.fill(Color.PINK.getRGB());
@@ -352,7 +365,19 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
         pickerBuffer.scale(scale);
         pickerBufferDrawer.drawAll(pickerBuffer);
         pickerBuffer.endDraw();
-        picker.select(applet.mouseX, applet.mouseY);
+        //picker.select(applet.mouseX, applet.mouseY);
+        {
+            Component c = picker.pick(applet.mouseX, applet.mouseY);
+            if (c != null && c.whut instanceof SwitchElm) {
+                SwitchElm se = (SwitchElm) c.whut;
+                se.toggle();
+                if (se.isMomentary()) {
+                    se.getCS().setHeldSwitchElm(se);
+                }
+                se.getCS().needAnalyze();
+            }
+        }
+
     }
 
     @Override
@@ -516,7 +541,6 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
 //            if ((x0 > x && x < x1 && y0 > y && y < y1 && z0 > z && z < z1)) {
 //                continue;
 //            }
-
             g3d.pushStyle();
             g3d.noStroke();
             g3d.fill(0);

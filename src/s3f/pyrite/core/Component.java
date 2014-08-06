@@ -14,7 +14,7 @@ import java.util.Vector;
  * @author antunes
  */
 public class Component extends Fixable {
-
+public Object whut = null;
     private static int ID = 0;
     //id
     private int uid;

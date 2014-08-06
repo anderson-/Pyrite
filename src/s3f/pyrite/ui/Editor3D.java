@@ -202,6 +202,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                     if (!compMap.containsKey(t)) {
                         //transistor e outros
                         Component j = new Component();
+                        j.whut = t;
                         String n = t.dump();
                         j.setName(t.dump());
                         j.setData(t.dump());
