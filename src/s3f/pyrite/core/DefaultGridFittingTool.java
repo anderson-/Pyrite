@@ -120,7 +120,7 @@ public class DefaultGridFittingTool implements GridFittingTool {
                     break;
                 }
             }
-            
+
             if (v.getPos() != null) {
                 for (Connection c : new ArrayList<>(v.getConnections())) {
                     Component j = c.getOtherComponent(v);
@@ -150,7 +150,7 @@ public class DefaultGridFittingTool implements GridFittingTool {
                     }
                 }
                 for (Connection c : v.getConnections()) {
-                    if (!c.isSatisfied()){
+                    if (!c.isSatisfied()) {
                         s.offer(v);
                         continue fit;
                     }
@@ -187,6 +187,7 @@ public class DefaultGridFittingTool implements GridFittingTool {
             throw new IllegalStateException("Position of " + j + " is already defined.");
         }
         ArrayList<int[]> list = new ArrayList<>();
+        long t = System.currentTimeMillis();
         List<int[]> neighborhood = grid.getNeighborhood(v.getPos());
         int nSize = neighborhood.size();
         for (int[] w : neighborhood) {
@@ -196,6 +197,7 @@ public class DefaultGridFittingTool implements GridFittingTool {
                 }
             }
         }
+        System.out.println("p: " + (System.currentTimeMillis() - t));
         if (parameters.shuffleNg) {
             Collections.shuffle(list, rand);
         }
@@ -230,6 +232,8 @@ public class DefaultGridFittingTool implements GridFittingTool {
         circuit.removeConnection(c0);
         circuit.addConnection(c1);
         circuit.addConnection(c2);
+        c1.whut = c0.whut;
+        c2.whut = c0.whut;
         c1.setSatisfied(true);
         c2.setSatisfied(true);
         for (Connection con : v.getConnections()) {
@@ -272,7 +276,9 @@ public class DefaultGridFittingTool implements GridFittingTool {
                 }
             }
             validShortcuts.clear();//TEMP
+            long t = System.currentTimeMillis();
             d.computePaths(a.getPos(), b.getPos(), grid, circuit.getComponents(), validShortcutsPos);
+            System.out.println("d: " + (System.currentTimeMillis() - t));
             validShortcuts.add(b);
             List<int[]> directions = null;
 //            System.out.println("validShortcuts: " + validShortcuts.size());
@@ -372,21 +378,23 @@ public class DefaultGridFittingTool implements GridFittingTool {
 
                     int distanceThroughU = distU + 1;
                     if (distanceThroughU < distV && distV != 12000) {
-//                        if (v == this.target){
-//                            if (distanceThroughU < minDistance){
-//                                minDistance = distanceThroughU;
-//                            }
-//                                boolean ok = false;
-//                                for (int d : distances.values()){
-//                                    if (d < distanceThroughU){
-//                                        
-//                                    }
-//                                }
+//                        if (v == this.target) {
+//                            minDistance = distanceThroughU;
 //                        }
-                        vertexQueue.remove((Integer) v);
-                        distances.put(v, distanceThroughU);
-                        prev.put(v, u);
-                        vertexQueue.add(v);
+//                        vertexQueue.remove((Integer) v);
+//                        if (distanceThroughU <= minDistance) {
+//                            distances.put(v, distanceThroughU);
+//                            prev.put(v, u);
+//                            vertexQueue.add(v);
+//                        } else {
+//                            distances.put(v, 12000);
+//                        }
+                        {
+                            vertexQueue.remove((Integer) v);
+                            distances.put(v, distanceThroughU);
+                            prev.put(v, u);
+                            vertexQueue.add(v);
+                        }
                     }
                 }
             }

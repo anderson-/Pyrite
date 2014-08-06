@@ -119,6 +119,10 @@ public class Component extends Fixable {
         return uid + (name.isEmpty() ? "" : "(" + name + ")");
     }
 
+    public void setData(Object data) {
+        this.data = data;
+    }
+
     public Object getData() {
         return data;
     }

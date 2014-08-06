@@ -5,8 +5,12 @@
  */
 package s3f.pyrite.ui.drawing3d;
 
+import com.falstad.circuit.CircuitElm;
+import com.falstad.circuit.elements.WireElm;
 import com.jogamp.newt.event.KeyEvent;
 import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Point;
 import static java.lang.Math.PI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -108,6 +112,9 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
                     g3d.fill(Color.PINK.getRGB());
                 }
                 for (Connection con : new ArrayList<>(c.getConnections())) {
+                    if (con.getA() != c) {
+                        continue;
+                    }
                     Component v = con.getOtherComponent(c);
                     if (!con.isSatisfied()) {
                         g3d.stroke(255, 0, 0);
@@ -120,7 +127,13 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
                     } else {
                         g3d.stroke(0, 255, 0);
                         if (v.getPos() != null) {
-                            g3d.line(c.getPos()[0], c.getPos()[1], c.getPos()[2], v.getPos()[0], v.getPos()[1], v.getPos()[2]);
+                            if (con.whut != null) {
+                                float f = (float) ((CircuitElm) con.whut).getWhut() / 100;
+                                drawElec(g3d, c.getPos()[0], c.getPos()[1], c.getPos()[2], v.getPos()[0], v.getPos()[1], v.getPos()[2], f);
+                            } else {
+                                g3d.line(c.getPos()[0], c.getPos()[1], c.getPos()[2], v.getPos()[0], v.getPos()[1], v.getPos()[2]);
+                            }
+
 //                            {
 //                                g3d.pushStyle();
 //                                g3d.fill(0, 255, 0);
@@ -218,15 +231,13 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
     }
 
     public float[] getEye() {
-        return new float[]{eyeZ,
-            atX,
-            atY,
-            atZ,
-            upX,
-            upY,
-            posX,
-            posY,
-            theta};
+        return new float[]{
+            eyeZ,
+            atX, atY, atZ,
+            upX, upY,
+            posX, posY,
+            theta
+        };
     }
 
     public void setEye(float[] eye) {
@@ -417,7 +428,7 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
             }
         } else if (applet.keyCode == KeyEvent.VK_R) {
 //            circuit.decubeficate();
-            circuit.getComponent("RailElm").setPos(new int[]{5, 2, 2});
+            circuit.getComponent("RailElm").setPos(new int[]{4, 2, 2});
             circuit.getComponent("GroundElm").setPos(new int[]{2, 2, 2});
         } else if (applet.keyCode == KeyEvent.VK_P) {
 //            if (placeThread == null || !placeThread.isAlive()) {
@@ -489,6 +500,35 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
             g3d.point(x, y, z);
             t += 1f / s;
         }
+    }
+
+    public static void drawElec(PGraphics g3d, float x0, float y0, float z0, float x1, float y1, float z1, float pos) {
+        float d = (float) Math.sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1) + (z0 - z1) * (z0 - z1));
+        float s = d / 0.1f; //[0.01-0.12]
+        float x, y, z, t = pos % (1f / s);
+
+        for (; t <= 1;) {
+            x = (1 - t) * x0 + t * x1;
+            y = (1 - t) * y0 + t * y1;
+            z = (1 - t) * z0 + t * z1;
+            t += 1f / s;
+
+//            if ((x0 > x && x < x1 && y0 > y && y < y1 && z0 > z && z < z1)) {
+//                continue;
+//            }
+
+            g3d.pushStyle();
+            g3d.noStroke();
+            g3d.fill(0);
+            g3d.pushMatrix();
+            g3d.translate(x, y, z);
+            //g3d.box(.05f);
+            drawSphere(g3d, .02f, 5);
+            g3d.popMatrix();
+            g3d.popStyle();
+            //g3d.line(x, y, z, a, b, c);
+        }
+        g3d.line(x0, y0, z0, x1, y1, z1);
     }
 
     public static void drawDashedLine(PGraphics g3d, float x0, float y0, float z0, float x1, float y1, float z1) {

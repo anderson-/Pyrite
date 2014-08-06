@@ -10,7 +10,7 @@ package s3f.pyrite.core;
  * @author antunes
  */
 public class Connection extends Fixable {
-
+public Object whut = null;
     private static int ID = 0;
     //id
     private int uid;

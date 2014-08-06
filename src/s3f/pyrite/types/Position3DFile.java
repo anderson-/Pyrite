@@ -22,7 +22,7 @@ public class Position3DFile extends ComplexElement implements TextFile {
 
     public static final Element.CategoryData FLOWCHART_FILES = new Element.CategoryData("Position File", "pf", new ImageIcon(ModularCircuit.class.getResource("/resources/icons/fugue/wand-hat.png")), new Position3DFile());
 
-    String v2 = "$ 1 5.0E-6 10.20027730826997 52 5.0 50.0\n"
+    public static final String DUMMY = "$ 1 5.0E-6 10.20027730826997 52 5.0 50.0\n"
                 + "t 80 208 128 208 0 1 0.6381941100809847 0.6478969866591134 100.0\n"
                 + "t 176 208 224 208 0 1 -0.009702876570569624 7.55914423854251E-12 100.0\n"
                 + "t 272 208 320 208 0 1 -0.009702876570569624 7.55914423854251E-12 100.0\n"
@@ -48,7 +48,7 @@ public class Position3DFile extends ComplexElement implements TextFile {
                 + "- 352 160 400 160 0 2.5 s\n"
                 + "w 320 160 352 160 0\n";
     
-    private String text = v2;
+    private String text = DUMMY;
 
     public Position3DFile() {
         super("circuit", "/resources/icons/fugue/grid3d.png", FLOWCHART_FILES, new Class[]{Editor3D.class});
