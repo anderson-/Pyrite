@@ -37,6 +37,7 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
     private PGraphics3D pickerBuffer;
     private ObjectPicker.Selectable<Component> pickerSource;
     private Circuit circuit;
+    private Grid grid = Grid.SIMPLE;
     private Thread cubThread = null;
     private ArrayList<String> messages = new ArrayList<>();
     private Thread placeThread = null;
@@ -216,6 +217,30 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
         pickerBufferDrawer.setCircuit(circuit);
     }
 
+    public float[] getEye() {
+        return new float[]{eyeZ,
+            atX,
+            atY,
+            atZ,
+            upX,
+            upY,
+            posX,
+            posY,
+            theta};
+    }
+
+    public void setEye(float[] eye) {
+        eyeZ = eye[0];
+        atX = eye[1];
+        atY = eye[2];
+        atZ = eye[3];
+        upX = eye[4];
+        upY = eye[5];
+        posX = (int) eye[6];
+        posY = (int) eye[7];
+        theta = eye[8];
+    }
+
     public Circuit getCircuit() {
         return circuit;
     }
@@ -353,7 +378,7 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
                         try {
                             int i = print("cubeficating...");
                             DefaultGridFittingTool defaultGridFittingTool = new s3f.pyrite.core.DefaultGridFittingTool();
-                            defaultGridFittingTool.fit(circuit, Grid.SIMPLE2);
+                            defaultGridFittingTool.fit(circuit, grid);
                             print(i, "cubeficating... done.");
                         } catch (ThreadDeath e) {
                             print("break");
@@ -435,20 +460,20 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
 //            }
 //            print("Set timestep = " + Circuit.sleep + " ms");
         } else if (applet.keyCode == KeyEvent.VK_1) {
-//            print("SET: Topology.SIMPLE");
-//            topology = Topology.SIMPLE;
+            print("SET: Topology.SIMPLE");
+            grid = Grid.SIMPLE;
         } else if (applet.keyCode == KeyEvent.VK_2) {
-//            print("SET: Topology.SIMPLE2");
-//            topology = Topology.SIMPLE2;
+            print("SET: Topology.SIMPLE2");
+            grid = Grid.SIMPLE2;
         } else if (applet.keyCode == KeyEvent.VK_3) {
-//            print("SET: Topology.SIMPLE3");
-//            topology = Topology.SIMPLE3;
+            print("SET: Topology.SIMPLE3");
+            grid = Grid.SIMPLE3;
         } else if (applet.keyCode == KeyEvent.VK_4) {
-//            print("SET: Topology.SIMPLE4");
-//            topology = Topology.SIMPLE4;
+            print("SET: Topology.SIMPLE4");
+            grid = Grid.SIMPLE4;
         } else if (applet.keyCode == KeyEvent.VK_5) {
-//            print("SET: Topology.HEX");
-//            topology = Topology.HEX;
+            print("SET: Topology.HEX");
+            grid = Grid.HEX;
         }
 
     }

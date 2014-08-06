@@ -58,6 +58,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
     private TextFile textFile;
     private Circuit3DEditPanel drawingPanel;
     private Scene3D applet;
+    private float [] eye = null;
     
     JRootPane p = new JRootPane();
     
@@ -72,7 +73,9 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         if (drawingPanel == null) {
             drawingPanel = new Circuit3DEditPanel(null);
         } else {
+            eye = drawingPanel.getEye();
             drawingPanel = new Circuit3DEditPanel(drawingPanel.getCircuit());
+            drawingPanel.setEye(eye);
         }
         applet = drawingPanel.getApplet();
         applet.init();
