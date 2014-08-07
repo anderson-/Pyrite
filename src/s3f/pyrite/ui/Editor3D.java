@@ -46,6 +46,7 @@ import s3f.pyrite.core.Connection;
 import s3f.pyrite.types.Position3DFile;
 import s3f.pyrite.ui.components.MyLogicInputElm;
 import s3f.pyrite.ui.components.MyLogicOutputElm;
+import s3f.pyrite.ui.components.SubCircuitElm;
 import s3f.pyrite.ui.drawing3d.Circuit3DEditPanel;
 
 /**
@@ -114,6 +115,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         {//TODO
             cs.register(MyLogicInputElm.class);
             cs.register(MyLogicOutputElm.class);
+            cs.register(SubCircuitElm.class);
         }
         cs.init();
         window.setJMenuBar(cs.getGUI().createGUI(true));
@@ -123,7 +125,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         return cs;
     }
 
-    private static CircuitSimulator createCS(String text) {
+    public static CircuitSimulator createCS(String text) {
         JApplet window = new JApplet();
         CircuitSimulator cs = new CircuitSimulator();
         cs.setContainer(window.getContentPane());
@@ -131,6 +133,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         {//TODO
             cs.register(MyLogicInputElm.class);
             cs.register(MyLogicOutputElm.class);
+            cs.register(SubCircuitElm.class);
         }
         cs.init();
         window.setJMenuBar(cs.getGUI().createGUI(true));

@@ -368,9 +368,6 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
             if (c != null && c.whut instanceof SwitchElm) {
                 SwitchElm se = (SwitchElm) c.whut;
                 se.toggle();
-                if (se.isMomentary()) {
-                    se.getCS().setHeldSwitchElm(se);
-                }
                 se.getCS().needAnalyze();
             }
         }

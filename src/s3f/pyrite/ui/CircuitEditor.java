@@ -20,6 +20,7 @@ import s3f.core.ui.tab.TabProperty;
 import s3f.pyrite.types.ModularCircuit;
 import s3f.pyrite.ui.components.MyLogicInputElm;
 import s3f.pyrite.ui.components.MyLogicOutputElm;
+import s3f.pyrite.ui.components.SubCircuitElm;
 
 /**
  *
@@ -55,11 +56,10 @@ public class CircuitEditor implements Editor {
             circuit = (TextFile) content;
             data.setProperty(TabProperty.TITLE, content.getName());
             data.setProperty(TabProperty.ICON, content.getIcon());
-
-            circuitSimulator.readSetup(circuit.getText());
-
             circuitSimulator.register(MyLogicInputElm.class);
             circuitSimulator.register(MyLogicOutputElm.class);
+            circuitSimulator.register(SubCircuitElm.class);
+            circuitSimulator.readSetup(circuit.getText());
             circuitSimulator.addCircuitChangeListener(new PropertyChangeListener() {
                 @Override
                 public void propertyChange(PropertyChangeEvent pce) {
