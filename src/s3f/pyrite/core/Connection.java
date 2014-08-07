@@ -130,9 +130,17 @@ public Object whut = null;
 
     public void replace(Component c, Component other) {
         if (a == c) {
-            setB(other);
-        } else {
             setA(other);
+        } else {
+            setB(other);
+        }
+    }
+
+    void setTerminal(Component c, String terminal) {
+        if (a == c){
+            setTerminalA(terminal);
+        } else {
+            setTerminalB(terminal);
         }
     }
 }

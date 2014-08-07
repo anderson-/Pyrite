@@ -12,27 +12,21 @@ import com.falstad.circuit.CircuitSimulator;
 import edu.uci.ics.jung.algorithms.layout.KKLayout;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.SparseMultigraph;
-import edu.uci.ics.jung.graph.util.Pair;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
 import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
-import java.awt.BasicStroke;
 import java.awt.Dimension;
 import java.awt.Point;
-import java.awt.Stroke;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeSet;
 import javax.swing.JApplet;
 import javax.swing.JFrame;
 import javax.swing.JRootPane;
 import net.infonode.docking.DockingWindow;
 import net.infonode.docking.DockingWindowAdapter;
-import org.apache.commons.collections15.Transformer;
 import quickp3d.DrawingPanel3D.Scene3D;
 import s3f.core.plugin.Data;
 import s3f.core.plugin.Plugabble;
@@ -57,7 +51,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 
 //    private static final ImageIcon ICON = new ImageIcon(ModularCircuitEditor.class.getResource("/resources/icons/fugue/block.png"));
     private final Data data;
-    private TextFile textFile;
+    private Position3DFile textFile;
     private Circuit3DEditPanel drawingPanel;
     private Scene3D applet;
     private float[] eye = null;
@@ -86,22 +80,15 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 
     @Override
     public void setContent(Element content) {
+        if (content instanceof Position3DFile) {
+            textFile = (Position3DFile) content;
+        }
+
         if (content instanceof TextFile) {
-            textFile = (TextFile) content;
+            TextFile textFile = (TextFile) content;
             Circuit circuit = parseString(textFile.getText());
-            //---
-            Circuit circuit1 = new Circuit();
-            Component c1 = new Component("vcc");
-            Component c2 = new Component("gnd");
-            c1.createConnection(c2);
-            circuit1.addComponent(c1);
-            circuit1.addComponent(c2);
-//            System.out.println(">>" + dumpCircuit(circuit, true));
-
             drawingPanel.setCircuit(circuit);
-
             showGraph(createGraph(circuit), true);
-
             data.setProperty(TabProperty.TITLE, content.getName());
             data.setProperty(TabProperty.ICON, content.getIcon());
         }
@@ -140,6 +127,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         cs.posInit();
         cs.analyzeCircuit();
         cs.updateCircuit(null);
+        cs.updateCircuit(null);
         JFrame f = new JFrame();
         f.setContentPane(window);
         f.setSize(new Dimension(400, 400));
@@ -147,6 +135,399 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.setVisible(true);
         return cs;
+    }
+
+    public static void main(String[] args) {
+        String hard = "$ 1 5.0E-6 10.20027730826997 54.0 5.0 50.0\n"
+                + "t 80 176 80 256 0 1 0.587480887764175 -3.7727338911607884 100.0\n"
+                + "t 96 256 144 256 0 1 0.6027189712514504 0.6397852210750364 100.0\n"
+                + "L 64 256 0 256 0 1 false 5.0 0.0\n"
+                + "r 80 176 80 96 0 4700.0\n"
+                + "R 80 96 0 96 0 0 40.0 5.0 0.0 0.0 0.5\n"
+                + "w 80 96 144 96 0\n"
+                + "t 240 176 240 256 0 1 0.5908812846401537 0.5911300429119931 100.0\n"
+                + "t 256 256 304 256 0 1 -0.03681749155174671 2.4875827183941954E-4 100.0\n"
+                + "r 240 96 240 176 0 4700.0\n"
+                + "w 144 96 240 96 0\n"
+                + "w 240 96 304 96 0\n"
+                + "r 304 96 304 176 0 1000.0\n"
+                + "w 304 176 368 176 0\n"
+                + "M 368 176 416 176 0 2.5\n"
+                + "L 224 256 176 256 0 0 false 5.0 0.0\n"
+                + "r 144 96 144 176 0 1000.0\n"
+                + "w 144 176 144 208 0\n"
+                + "w 304 176 304 240 0\n"
+                + "w 144 208 368 208 0\n"
+                + "w 368 208 368 176 0\n"
+                + "w 144 208 144 240 0\n"
+                + "g 144 272 144 304 0\n"
+                + "g 304 272 304 304 0\n";
+
+        String def = "$ 1 5.0E-6 10.20027730826997 52 5.0 50.0\n"
+                + "t 80 208 128 208 0 1 0.6381941100809847 0.6478969866591134 100.0\n"
+                + "t 176 208 224 208 0 1 -0.009702876570569624 7.55914423854251E-12 100.0\n"
+                + "t 272 208 320 208 0 1 -0.009702876570569624 7.55914423854251E-12 100.0\n"
+                + "w 128 160 128 192 0\n"
+                + "w 224 160 224 192 0\n"
+                + "w 128 160 224 160 0\n"
+                + "w 224 160 320 160 0\n"
+                + "w 320 160 320 192 0\n"
+                + "r 80 208 80 272 0 470.0\n"
+                + "r 176 208 176 272 0 470.0\n"
+                + "r 272 208 272 272 0 470.0\n"
+                + "+ 80 272 80 304 0 1 false 3.6 0.0 a\n"
+                + "+ 176 272 176 304 0 0 false 3.6 0.0 b\n"
+                + "+ 272 272 272 304 0 0 false 3.6 0.0 c\n"
+                + "w 128 224 128 336 0\n"
+                + "w 224 224 224 336 0\n"
+                + "w 320 224 320 336 0\n"
+                + "w 320 336 224 336 0\n"
+                + "w 224 336 128 336 0\n"
+                + "r 320 160 320 64 0 640.0\n"
+                + "g 320 336 320 368 0\n"
+                + "R 320 64 288 64 0 0 40.0 3.6 0.0 0.0 0.5\n"
+                + "- 352 160 400 160 0 2.5 s\n"
+                + "w 320 160 352 160 0\n";
+
+        String simple = "$ 1 5.0E-6 10.20027730826997 52.0 5.0 50.0\n"
+                + "t 224 192 272 192 0 1 -3.5999999999125003 2.3499999999562566E-11 100.0\n"
+                + "w 272 144 272 176 0\n"
+                + "r 224 192 224 256 0 470.0\n"
+                + "+ 224 256 224 288 0 0 false 3.6 0.0 c\n"
+                + "w 272 208 272 320 0\n"
+                + "r 272 144 272 48 0 640.0\n"
+                + "g 272 320 272 352 0\n"
+                + "R 272 48 240 48 0 0 40.0 3.6 0.0 0.0 0.5\n"
+                + "- 304 144 352 144 0 2.5 s\n"
+                + "w 272 144 304 144 0\n";
+        Circuit c = createCircuit2(createCS(def));
+        showGraph(createGraph(c), true);
+        String s = dumpCircuit(c, createDummyCS(""));
+        createCS(s);
+    }
+
+    private static void testJoin() {
+        Circuit cir = new Circuit();
+
+        Component a = new Component();
+        Component b = new Component();
+        Component c = new Component();
+        Component d = new Component();
+
+        Connection x = a.createConnection(b);
+        Connection y = a.createConnection(c);
+        Connection z = a.createConnection(d);
+
+        x.setTerminalA("" + 0);
+        y.setTerminalA("" + 1);
+        z.setTerminalA("" + 2);
+
+        cir.addComponent(a);
+        cir.addComponent(b);
+        cir.addComponent(c);
+        cir.addComponent(d);
+
+        cir.addConnection(x);
+        cir.addConnection(y);
+        cir.addConnection(z);
+
+        Component b2 = new Component();
+        Component c2 = new Component();
+        Component d2 = new Component();
+
+        Connection x2 = b2.createConnection(b);
+        Connection y2 = c2.createConnection(c);
+        Connection z2 = d2.createConnection(d);
+
+        cir.addComponent(b2);
+        cir.addComponent(c2);
+        cir.addComponent(d2);
+
+        cir.addConnection(x2);
+        cir.addConnection(y2);
+        cir.addConnection(z2);
+
+        cir.removeConnection(a.appendAndConsume(b));
+        cir.removeComponent(b);
+
+        showGraph(createGraph(cir), true);
+    }
+
+    private static Circuit createCircuit2(CircuitSimulator cs) {
+        Circuit cir = new Circuit();
+
+        HashMap<Point, Component> allNodes = new HashMap<>();
+        ArrayList<ArrayList<Component>> w = new ArrayList<>();
+
+        //create one node for each terminal of each component
+        for (int i = 0; i < cs.elmListSize(); i++) {
+            CircuitElm elm = cs.getElm(i);
+            ArrayList<Component> s = new ArrayList<>();
+            for (int j = 0; j < elm.getPostCount(); j++) {
+                Point p = elm.getPost(j);
+                if (!allNodes.containsKey(p)) {
+                    Component c = new Component();
+                    s.add(c);
+                    cir.addComponent(c);
+                    allNodes.put(p, c);
+                }
+            }
+            w.add(s);
+        }
+
+        //wire everthing up
+        for (int i = 0; i < cs.elmListSize(); i++) {
+            CircuitElm elm = cs.getElm(i);
+            for (int j = 0; j < elm.getPostCount(); j++) {
+                Point p = elm.getPost(j);
+                Component c = allNodes.get(p);
+                Component c2 = allNodes.get(elm.getPost(0));
+                if (c2 != null && c2 != c) {
+                    Connection con = c2.createConnection(c);
+                    con.setSubComponent(elm.dump());
+                    if (elm.getPostCount() > 2) {
+                        con.setTerminalA("" + j);
+                    } else {
+                        con.setTerminalA("" + 0);
+                    }
+                    cir.addConnection(con);
+                }
+            }
+        }
+
+        //defines what's node and what's edge
+        ArrayList<CircuitElm> nodes = new ArrayList<>();
+        ArrayList<CircuitElm> edges = new ArrayList<>();
+        for (int i = 0; i < cs.elmListSize(); i++) {
+            CircuitElm elm = cs.getElm(i);
+            if (elm.getPostCount() == 2) {
+                edges.add(elm);
+            } else {
+                nodes.add(elm);
+            }
+        }
+
+        //join all the terminal-nodes created before of each component into a single component 
+        for (CircuitElm elm : nodes) {
+            Component c = null;
+            for (int i = 0; i < elm.getPostCount(); i++) {
+                Component t = allNodes.get(elm.getPost(i));
+                if (c == null) {
+                    c = t;
+                } else {
+                    cir.removeConnection(c.appendAndConsume(t));
+                    cir.removeComponent(t);
+                }
+            }
+            c.setData(elm.dump());
+            c.setName(elm.getClass().getSimpleName());
+        }
+        if (true) {
+            return cir;
+        }
+
+        System.out.println(allNodes.size());
+
+        for (int i = 0; i < cs.elmListSize(); i++) {
+            CircuitElm elm = cs.getElm(i);
+            for (int j = 0; j < elm.getPostCount(); j++) {
+                Point p = elm.getPost(j);
+                Component c = allNodes.get(p);
+                for (int k = 0; k < ((CircuitElm) c.getData()).getPostCount(); k++) {
+                    Component c2 = allNodes.get(elm.getPost(k));
+                    if (c2 != null) {
+                        Connection con = c2.createConnection(c);
+                        cir.addConnection(con);
+                    }
+                }
+            }
+        }
+
+//        ArrayList<CircuitElm> nodes = new ArrayList<>();
+//        ArrayList<CircuitElm> edges = new ArrayList<>();
+//        for (int i = 0; i < cs.elmListSize(); i++) {
+//            CircuitElm elm = cs.getElm(i);
+//            if (elm.getPostCount() == 2) {
+//                edges.add(elm);
+//            } else {
+//                nodes.add(elm);
+//            }
+//        }
+        for (ArrayList<Component> s : w) {
+            Component c = null;
+            for (Component t : s) {
+                if (c == null) {
+                    c = t;
+                } else {
+                    c.appendAndConsume(t);
+                    cir.removeComponent(t);
+                }
+            }
+            //c.setData(elm.dump());
+        }
+
+//        for (CircuitElm elm : nodes) {
+//            Component c = null;
+//            for (int i = 0; i < elm.getPostCount(); i++) {
+//                Component t = allNodes.get(elm.getPost(i));
+//                if (c == null) {
+//                    c = t;
+//                } else {
+//                    c.appendAndConsume(t);
+//                    cir.removeComponent(t);
+//                }
+//            }
+//            c.setData(elm.dump());
+//        }
+//
+//        n:
+//        for (int i = 0; i < cs.nodeListSize(); i++) {
+//            CircuitNode cn = cs.getCircuitNode(i);
+//            if (cn.internal) {
+//                continue;
+//            }
+//
+//            for (CircuitNodeLink link : cn.links) {
+//                CircuitElm elm = link.elm;
+//                if (elm.getPostCount() != 2) {
+//                    continue n;
+//                }
+//            }
+//
+//            Component c = null;
+//            for (CircuitNodeLink link : cn.links) {
+//                CircuitElm elm = link.elm;
+//                Component t = s.get(w.indexOf(elm));
+//                if (t == null) {
+//                    System.out.println(elm);
+//                    continue;
+//                }
+//
+//                if (c == null) {
+//                    c = t;
+//                } else {
+//                    c.appendAndConsume(t);
+//                    cir.removeComponent(t);
+//                }
+//            }
+//        }
+//        n:
+//        for (int i = 0; i < cs.nodeListSize(); i++) {
+//            CircuitNode cn = cs.getCircuitNode(i);
+//            if (cn.internal) {
+//                continue;
+//            }
+//
+//            for (CircuitNodeLink link : cn.links) {
+//                CircuitElm elm = link.elm;
+//                if (elm.getPostCount() != 2){
+//                    continue n;
+//                }
+//            }
+//            
+//            for (CircuitNodeLink link : cn.links) {
+//                CircuitElm elm = link.elm;
+//                
+//            }
+//        }
+        if (true) {
+            return cir;
+        }
+
+        HashMap<Point, Object[]> nodeComponents = new HashMap<>();
+        for (CircuitElm elm : nodes) {
+            Component c = new Component();
+            c.setData(elm.dump());
+            cir.addComponent(c);
+            for (int i = 0; i < elm.getPostCount(); i++) {
+                nodeComponents.put(elm.getPost(i), new Object[]{c, elm, i});
+            }
+        }
+
+        for (int i = 0; i < cs.nodeListSize(); i++) {
+            CircuitNode circuitNode = cs.getCircuitNode(i);
+            if (circuitNode.internal) {
+                continue;
+            }
+            Component c = new Component();
+            for (int j = 0; j < circuitNode.links.size(); j++) {
+                CircuitElm elm = circuitNode.links.get(j).elm;
+                if (elm.getPostCount() != 2) {
+                    for (int k = 0; k < elm.getPostCount(); k++) {
+                        Object[] v = nodeComponents.get(elm.getPost(k));
+                        if (v != null) {
+                            Component c2 = (Component) v[0];
+                            String t2 = ((Integer) v[2]).toString();
+                            Connection con = new Connection(c, "", c2, t2, "");
+                            cir.addConnection(con);
+                            cir.addComponent(c);
+                        }
+                    }
+
+                }
+            }
+        }
+
+        for (CircuitElm edge : edges) {
+            Object[] v1 = nodeComponents.get(edge.getPost(0));
+            Object[] v2 = nodeComponents.get(edge.getPost(1));
+
+//            if (v1 == null) {
+//                ArrayList<CircuitElm> list = map.get(edge.getPost(0));
+//                if (list != null) {
+//                    for (CircuitElm elm : list) {
+//                        if (elm.getPostCount() != 2) {
+//                            Component c = new Component();
+//                            c.setData(elm.dump());
+//                            cir.addComponent(c);
+//                            for (int i = 0; i < elm.getPostCount(); i++) {
+//                                Point p = elm.getPost(i);
+//                                Object[] o = new Object[]{c, elm, i};
+//                                nodeComponents.put(p, o);
+//                                if (edge.getPost(0) == p) {
+//                                    v1 = o;
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//            if (v2 == null) {
+//                ArrayList<CircuitElm> list = map.get(edge.getPost(1));
+//                if (list != null) {
+//                    for (CircuitElm elm : list) {
+//                        if (elm.getPostCount() != 2) {
+//                            Component c = new Component();
+//                            c.setData(elm.dump());
+//                            cir.addComponent(c);
+//                            for (int i = 0; i < elm.getPostCount(); i++) {
+//                                Point p = elm.getPost(i);
+//                                Object[] o = new Object[]{c, elm, i};
+//                                nodeComponents.put(p, o);
+//                                if (edge.getPost(0) == p) {
+//                                    v2 = o;
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+            if (v1 != null && v2 != null) {
+                Component c1 = (Component) v1[0];
+                Component c2 = (Component) v2[0];
+
+                String t1 = ((Integer) v1[2]).toString();
+                String t2 = ((Integer) v1[2]).toString();
+
+                Connection c = new Connection(c1, t1, c2, t2, edge.dump());
+                cir.addConnection(c);
+            } else {
+
+            }
+        }
+
+        return cir;
     }
 
     private static Circuit createCircuit(CircuitSimulator cs) {
@@ -293,7 +674,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
     }
 
     private static Circuit parseString(String text) {
-        return createCircuit(createCS(text));
+        return createCircuit2(createCS(text));
     }
 
     private static Graph<String, String> createGraph(Circuit circuit) {
@@ -345,7 +726,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                 }
             });
             DefaultModalGraphMouse gm = new DefaultModalGraphMouse();
-            gm.setMode(ModalGraphMouse.Mode.TRANSFORMING);
+            gm.setMode(ModalGraphMouse.Mode.PICKING);
             vv.setGraphMouse(gm);
             JFrame frame = new JFrame("Interactive Graph 2D View - DUMP");
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -355,13 +736,12 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         }
     }
 
-    public static void main(String[] args) {
-        String s = dumpCircuit2(parseString(Position3DFile.DUMMY), createDummyCS(""));
-        System.out.println(">>\n" + s);
-        createCS(s);
-    }
-
-    private static String dumpCircuit2(Circuit circuit, CircuitSimulator cs) {
+//    public static void main(String[] args) {
+//        String s = dumpCircuit(parseString(Position3DFile.DUMMY), createDummyCS(""));
+//        System.out.println(">>\n" + s);
+//        createCS(s);
+//    }
+    private static String dumpCircuit(Circuit circuit, CircuitSimulator cs) {
         StringBuilder sb = new StringBuilder();
 
         Graph<String, String> graph = createGraph(circuit);
@@ -467,221 +847,6 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         return sb.toString();
     }
 
-    private static String dumpCircuit(Circuit circuit) {
-
-        Graph<String, String> graph = createGraph(circuit);
-
-        KKLayout<String, String> layout = new KKLayout(graph);//new FRLayout(graph);
-        layout.setSize(new Dimension(400, 400));
-
-        HashMap<String, Point2D> pointMap = new HashMap<>();
-        HashMap<String, Component> compMap = new HashMap<>();
-
-        for (Component v : circuit.getComponents()) {
-            String id = v.toString();
-            Point2D p = layout.transform(id);
-            pointMap.put(id, p);
-            compMap.put(id, v);
-        }
-
-        ArrayList<String> edges = new ArrayList<>();
-        for (Component v : circuit.getComponents()) {
-            for (Connection con : v.getConnections()) {
-                Component e = con.getOtherComponent(v);
-                for (String s : graph.findEdgeSet(v.toString(), e.toString())) {
-                    if (!edges.contains(s)) {
-                        edges.add(s);
-                    }
-                }
-            }
-        }
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("$ 1 5.0E-6 10 54 5.0\n");
-        TreeSet<Pair<String>> ok = new TreeSet<>(new Comparator<Pair<String>>() {
-            @Override
-            public int compare(Pair<String> o1, Pair<String> o2) {
-                String f1 = o1.getFirst();
-                String f2 = o2.getFirst();
-                String s1 = o1.getSecond();
-                String s2 = o2.getSecond();
-
-                if (f1.equals(f2) && s1.equals(s2)) {
-                    return 0;
-                } else if (f1.equals(s2) && s1.equals(f2)) {
-                    return 0;
-                }
-
-                return 1;
-            }
-        });
-        ArrayList<String> okt = new ArrayList<>();
-        for (String edge : edges) {
-            Pair<String> endpoints = graph.getEndpoints(edge);
-            String source = endpoints.getFirst();
-            String dest = endpoints.getSecond();
-            Component v = compMap.get(source);
-            Component e = compMap.get(dest);
-
-            Connection con = e.getConnection(v);
-
-            if (con == null) {
-                System.err.println("ERROR!");
-                System.exit(0);
-                continue;
-            }
-
-            String c1 = con.getA().toString();
-            String c1t = con.getTerminalA();
-            String comp = con.getSubComponent();
-            String c2t = con.getTerminalB();
-            String c2 = con.getB().toString();
-
-            /*
-            
-             r w 
-             w r 
-             w w 
-            
-             */
-            if (!ok.contains(endpoints)) {
-                if (edge.startsWith("[")) {
-                    ok.add(endpoints);
-                    continue;
-                }
-            } else {
-
-            }
-
-            String type = "";
-            String flags = "";
-
-            if (comp.length() > 8) {
-                type = comp.substring(0, comp.indexOf(' '));
-                flags = comp;
-                for (int i = 0; i < 5; i++) {
-                    flags = flags.substring(flags.indexOf(' ') + 1);
-                }
-                System.out.println(type + " - " + flags);
-            } else {
-
-                switch (comp) {
-                    case "":
-                        type = "w";
-                        flags = "0";
-                        break;
-                    case "res1k":
-                        type = "r";
-                        flags = "0 1000.0";
-                        break;
-                    case "res2k":
-                        type = "r";
-                        flags = "0 2000.0";
-                        break;
-                    case "res10k":
-                        type = "r";
-                        flags = "0 10000.0";
-                        break;
-                    case "btn":
-                        type = "s";
-                        flags = "0 1 false";
-                        break;
-                    case "(->^^|-)":
-                        type = "162";
-                        //x tensão r g b
-                        flags = "1 2.1024259 1.0 0.0 0.0";
-                        break;
-                    case "(->|-)":
-                        type = "d";
-                        flags = "1 0.805904783";
-                        break;
-                    case "bat":
-                        type = "v";
-                        flags = "0 0 40.0 9.0 0.0 0.0 0.5";
-                        break;
-//                        case "?":
-//                            type = "";
-//                            flags = "";
-//                            break;
-                    default:
-                        System.out.println("not def: " + comp);
-                }
-            }
-
-            Point2D p1 = pointMap.get(c1);
-            Point2D p2 = pointMap.get(c2);
-
-            int x1 = ((int) p1.getX() / 10) * 16;
-            int x2 = ((int) p2.getX() / 10) * 16;
-            int y1 = ((int) p1.getY() / 10) * 16;
-            int y2 = ((int) p2.getY() / 10) * 16;
-
-            if (v.getData() != null && v.getData().toString().contains("ransistor") && !okt.contains(c1)) {
-                okt.add(c1);
-                sb.append("t " + x1 + " " + y1 + " " + (x1 + 32) + " " + y1 + "  0 1 0.0 0.0 100.0\n");
-            }
-
-            if (e.getData() != null && "transistor".equals(e.getData().toString()) && !okt.contains(c2)) {
-                okt.add(c2);
-                sb.append("t " + x2 + " " + y2 + " " + (x2 + 32) + " " + y2 + "  0 1 0.0 0.0 100.0\n");
-            }
-
-            switch (c1t) {
-                case "b":
-                    x1 = x1;
-                    y1 = y1;
-                    break;
-                case "c":
-                    x1 = x1 + 32;
-                    y1 = y1 - 16;
-                    break;
-                case "e":
-                    x1 = x1 + 32;
-                    y1 = y1 + 16;
-                    break;
-            }
-
-            switch (c2t) {
-                case "b":
-                    x2 = x2;
-                    y2 = y2;
-                    break;
-                case "c":
-                    x2 = x2 + 32;
-                    y2 = y2 - 16;
-                    break;
-                case "e":
-                    x2 = x2 + 32;
-                    y2 = y2 + 16;
-                    break;
-            }
-
-            if (!type.isEmpty()) {
-                sb.append(type + " " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + flags + "\n");
-            }
-
-            if (e.getData() != null && e.getData().toString().length() > 8) {
-                comp = e.getData().toString();
-                type = comp.substring(0, comp.indexOf(' '));
-                flags = comp;
-                for (int i = 0; i < 5; i++) {
-                    flags = flags.substring(flags.indexOf(' ') + 1);
-                }
-                sb.append(type + " " + x2 + " " + y2 + " " + (x1 - 64) + " " + y1 + " " + flags + "\n");
-            }
-
-//            if (this.inputs.contains(e)) {
-//                sb.append("+" + " " + x2 + " " + y2 + " " + (x2 - 64) + " " + y2 + " 0 0 false 3.6 0.0 " + e.name + "\n");
-//            } else if (this.outputs.contains(e)) {
-//                sb.append("-" + " " + x1 + " " + y1 + " " + (x1 + 64) + " " + y1 + " 0 2.5 s " + e.name + "\n");
-//            } else if ("vcc".equals(e.name)) {
-//            } else if ("gnd".equals(e.name)) {
-//            }
-        }
-
-        return sb.toString();
-    }
-
     @Override
     public Element getContent() {
         return textFile;
@@ -689,15 +854,12 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 
     @Override
     public void update() {
-//        EntityManager em = PluginManager.getInstance().createFactoryManager(null);
-//        Simulator sim = (Simulator) em.getProperty("s3f.core.interpreter.tmp", "interpreter");
-//        Interpreter i = new Interpreter();
-//        for (Object o : flowchart.getExternalResources()) {
-//            i.addResource(o);
-//        }
-//        i.setMainFunction(flowchartPanel.getFunction());
-//        sim.clear();
-//        sim.add(i);
+        for (Object o : textFile.getExternalResources()) {
+            if (o instanceof TextFile) {
+                TextFile textFile = (TextFile) o;
+                setContent(textFile);
+            }
+        }
     }
 
     @Override

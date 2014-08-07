@@ -14,7 +14,8 @@ import java.util.Vector;
  * @author antunes
  */
 public class Component extends Fixable {
-public Object whut = null;
+
+    public Object whut = null;
     private static int ID = 0;
     //id
     private int uid;
@@ -132,14 +133,26 @@ public Object whut = null;
         return (coupler ? "+'{" : "+{") + uid + " |" + name + ", '" + data + "', " + Arrays.toString(pos) + ", c = " + conns.size() + ", s = " + shortcut.size() + "}";
     }
 
-    public void appendAndConsume(Component c) {
+    public Connection appendAndConsume(Component c) {
         if (coupler && c.coupler) {
+            Connection old = c.getConnection(this);
+            String ter = "";
+            if (old != null) {
+                c.removeConnection(old);
+                this.removeConnection(old);
+                old.setConsumed(true);
+                ter = old.getTerminal(this);
+            } else {
+                System.err.println("WARNING: invalid connection");
+            }
             for (Connection con : c.getConnections()) {
                 con.replace(c, this);
+                con.setTerminal(this,ter);
+                conns.add(con);
             }
-
-            this.conns.addAll(c.getConnections());
+            c.conns.clear();
             c.setConsumed(true);
+            return old;
 
 //            this.FIXED_terminals.addAll(c.FIXED_terminals);
 //            this.FIXED_connections.addAll(c.FIXED_connections);
