@@ -23,6 +23,7 @@ import s3f.pyrite.ui.ConfigurationTab;
 import s3f.pyrite.ui.ConfigurationTab.Checkbox;
 import s3f.pyrite.ui.ConfigurationTab.CustomComponent;
 import s3f.pyrite.ui.ConfigurationTab.Panel;
+import s3f.pyrite.ui.Editor3D;
 
 /**
  *
@@ -159,6 +160,7 @@ public class DefaultGridFittingTool implements GridFittingTool {
                 s.offer(v);
             }
         }
+        Editor3D.showGraph(Editor3D.createGraph(circuit), true);
     }
 
     public void sleep() {
@@ -311,25 +313,49 @@ public class DefaultGridFittingTool implements GridFittingTool {
 
     private static class Dijkstra {
 
-        static int toInt(int x, int y, int z) {
-            int rgb = x;
-            rgb = (rgb << 8) + y;
-            rgb = (rgb << 8) + z;
-            return rgb;
+//        private static int decode(byte[] bi) {
+//            return bi[3] & 0xFF | (bi[2] & 0xFF) << 8
+//                    | (bi[1] & 0xFF) << 16 | (bi[0] & 0xFF) << 24;
+//        }
+//
+//        private static byte[] encode(int i) {
+//            return new byte[]{(byte) (i >>> 24), (byte) ((i << 8) >>> 24),
+//                (byte) ((i << 16) >>> 24), (byte) ((i << 24) >>> 24)
+//            };
+//        }
+
+        private static int toInt(int... bi) {
+            return /*bi[3] & 0xFF |*/ (bi[2] & 0xFF) << 8
+                    | (bi[1] & 0xFF) << 16 | (bi[0] & 0xFF) << 24;
         }
 
-        static int toInt(int... i) {
-            int rgb = i[0];
-            rgb = (rgb << 8) + i[1];
-            rgb = (rgb << 8) + i[2];
-            return rgb;
+        private static int[] toVet(int i) {
+            return new int[]{(byte) (i >>> 24), (byte) ((i << 8) >>> 24),
+                (byte) ((i << 16) >>> 24)/*, (byte) ((i << 24) >>> 24)*/};
         }
 
-        static int[] toVet(int i) {
-            int x = (i >> 16) & 0xFF;
-            int y = (i >> 8) & 0xFF;
-            int z = i & 0xFF;
-            return new int[]{x, y, z};
+//        static int toInt(int x, int y, int z) {
+//            int rgb = x;
+//            rgb = (rgb << 8) + y;
+//            rgb = (rgb << 8) + z;
+//            return rgb;
+//        }
+//
+//        static int toInt(int... i) {
+//            int rgb = i[0];
+//            rgb = (rgb << 8) + i[1];
+//            rgb = (rgb << 8) + i[2];
+//            return rgb;
+//        }
+//
+//        static int[] toVet(int i) {
+//            int x = (i >> 16) & 0xFF;
+//            int y = (i >> 8) & 0xFF;
+//            int z = i & 0xFF;
+//            return new int[]{x, y, z};
+//        }
+        public static void main(String[] args) {
+            System.out.println(Arrays.toString(toVet(toInt(1, 2, -3))));
         }
 
         Map<Integer, Integer> distances = new HashMap<>();

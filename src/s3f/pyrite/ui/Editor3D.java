@@ -86,9 +86,13 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 
         if (content instanceof TextFile) {
             TextFile textFile = (TextFile) content;
-            Circuit circuit = parseString(textFile.getText());
-            drawingPanel.setCircuit(circuit);
-            showGraph(createGraph(circuit), true);
+            if (!textFile.getText().isEmpty()) {
+                Circuit circuit = parseString(textFile.getText());
+                drawingPanel.setCircuit(circuit);
+                showGraph(createGraph(circuit), true);
+            } else {
+                drawingPanel.setCircuit(new Circuit());
+            }
             data.setProperty(TabProperty.TITLE, content.getName());
             data.setProperty(TabProperty.ICON, content.getIcon());
         }
@@ -290,6 +294,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                     } else {
                         con.setTerminalA("" + 0);
                     }
+                    con.whut = elm;
                     cir.addConnection(con);
                 }
             }
@@ -319,30 +324,29 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                     cir.removeComponent(t);
                 }
             }
+            c.whut = elm;
             c.setData(elm.dump());
             c.setName(elm.getClass().getSimpleName());
         }
-        if (true) {
-            return cir;
-        }
 
-        System.out.println(allNodes.size());
+        return cir;
 
-        for (int i = 0; i < cs.elmListSize(); i++) {
-            CircuitElm elm = cs.getElm(i);
-            for (int j = 0; j < elm.getPostCount(); j++) {
-                Point p = elm.getPost(j);
-                Component c = allNodes.get(p);
-                for (int k = 0; k < ((CircuitElm) c.getData()).getPostCount(); k++) {
-                    Component c2 = allNodes.get(elm.getPost(k));
-                    if (c2 != null) {
-                        Connection con = c2.createConnection(c);
-                        cir.addConnection(con);
-                    }
-                }
-            }
-        }
-
+//        System.out.println(allNodes.size());
+//
+//        for (int i = 0; i < cs.elmListSize(); i++) {
+//            CircuitElm elm = cs.getElm(i);
+//            for (int j = 0; j < elm.getPostCount(); j++) {
+//                Point p = elm.getPost(j);
+//                Component c = allNodes.get(p);
+//                for (int k = 0; k < ((CircuitElm) c.getData()).getPostCount(); k++) {
+//                    Component c2 = allNodes.get(elm.getPost(k));
+//                    if (c2 != null) {
+//                        Connection con = c2.createConnection(c);
+//                        cir.addConnection(con);
+//                    }
+//                }
+//            }
+//        }
 //        ArrayList<CircuitElm> nodes = new ArrayList<>();
 //        ArrayList<CircuitElm> edges = new ArrayList<>();
 //        for (int i = 0; i < cs.elmListSize(); i++) {
@@ -353,19 +357,18 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 //                nodes.add(elm);
 //            }
 //        }
-        for (ArrayList<Component> s : w) {
-            Component c = null;
-            for (Component t : s) {
-                if (c == null) {
-                    c = t;
-                } else {
-                    c.appendAndConsume(t);
-                    cir.removeComponent(t);
-                }
-            }
-            //c.setData(elm.dump());
-        }
-
+//        for (ArrayList<Component> s : w) {
+//            Component c = null;
+//            for (Component t : s) {
+//                if (c == null) {
+//                    c = t;
+//                } else {
+//                    c.appendAndConsume(t);
+//                    cir.removeComponent(t);
+//                }
+//            }
+//            //c.setData(elm.dump());
+//        }
 //        for (CircuitElm elm : nodes) {
 //            Component c = null;
 //            for (int i = 0; i < elm.getPostCount(); i++) {
@@ -430,104 +433,104 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 //                
 //            }
 //        }
-        if (true) {
-            return cir;
-        }
-
-        HashMap<Point, Object[]> nodeComponents = new HashMap<>();
-        for (CircuitElm elm : nodes) {
-            Component c = new Component();
-            c.setData(elm.dump());
-            cir.addComponent(c);
-            for (int i = 0; i < elm.getPostCount(); i++) {
-                nodeComponents.put(elm.getPost(i), new Object[]{c, elm, i});
-            }
-        }
-
-        for (int i = 0; i < cs.nodeListSize(); i++) {
-            CircuitNode circuitNode = cs.getCircuitNode(i);
-            if (circuitNode.internal) {
-                continue;
-            }
-            Component c = new Component();
-            for (int j = 0; j < circuitNode.links.size(); j++) {
-                CircuitElm elm = circuitNode.links.get(j).elm;
-                if (elm.getPostCount() != 2) {
-                    for (int k = 0; k < elm.getPostCount(); k++) {
-                        Object[] v = nodeComponents.get(elm.getPost(k));
-                        if (v != null) {
-                            Component c2 = (Component) v[0];
-                            String t2 = ((Integer) v[2]).toString();
-                            Connection con = new Connection(c, "", c2, t2, "");
-                            cir.addConnection(con);
-                            cir.addComponent(c);
-                        }
-                    }
-
-                }
-            }
-        }
-
-        for (CircuitElm edge : edges) {
-            Object[] v1 = nodeComponents.get(edge.getPost(0));
-            Object[] v2 = nodeComponents.get(edge.getPost(1));
-
-//            if (v1 == null) {
-//                ArrayList<CircuitElm> list = map.get(edge.getPost(0));
-//                if (list != null) {
-//                    for (CircuitElm elm : list) {
-//                        if (elm.getPostCount() != 2) {
-//                            Component c = new Component();
-//                            c.setData(elm.dump());
-//                            cir.addComponent(c);
-//                            for (int i = 0; i < elm.getPostCount(); i++) {
-//                                Point p = elm.getPost(i);
-//                                Object[] o = new Object[]{c, elm, i};
-//                                nodeComponents.put(p, o);
-//                                if (edge.getPost(0) == p) {
-//                                    v1 = o;
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
+//        if (true) {
+//            return cir;
+//        }
 //
-//            if (v2 == null) {
-//                ArrayList<CircuitElm> list = map.get(edge.getPost(1));
-//                if (list != null) {
-//                    for (CircuitElm elm : list) {
-//                        if (elm.getPostCount() != 2) {
-//                            Component c = new Component();
-//                            c.setData(elm.dump());
+//        HashMap<Point, Object[]> nodeComponents = new HashMap<>();
+//        for (CircuitElm elm : nodes) {
+//            Component c = new Component();
+//            c.setData(elm.dump());
+//            cir.addComponent(c);
+//            for (int i = 0; i < elm.getPostCount(); i++) {
+//                nodeComponents.put(elm.getPost(i), new Object[]{c, elm, i});
+//            }
+//        }
+//
+//        for (int i = 0; i < cs.nodeListSize(); i++) {
+//            CircuitNode circuitNode = cs.getCircuitNode(i);
+//            if (circuitNode.internal) {
+//                continue;
+//            }
+//            Component c = new Component();
+//            for (int j = 0; j < circuitNode.links.size(); j++) {
+//                CircuitElm elm = circuitNode.links.get(j).elm;
+//                if (elm.getPostCount() != 2) {
+//                    for (int k = 0; k < elm.getPostCount(); k++) {
+//                        Object[] v = nodeComponents.get(elm.getPost(k));
+//                        if (v != null) {
+//                            Component c2 = (Component) v[0];
+//                            String t2 = ((Integer) v[2]).toString();
+//                            Connection con = new Connection(c, "", c2, t2, "");
+//                            cir.addConnection(con);
 //                            cir.addComponent(c);
-//                            for (int i = 0; i < elm.getPostCount(); i++) {
-//                                Point p = elm.getPost(i);
-//                                Object[] o = new Object[]{c, elm, i};
-//                                nodeComponents.put(p, o);
-//                                if (edge.getPost(0) == p) {
-//                                    v2 = o;
-//                                }
-//                            }
 //                        }
 //                    }
+//
 //                }
 //            }
-            if (v1 != null && v2 != null) {
-                Component c1 = (Component) v1[0];
-                Component c2 = (Component) v2[0];
-
-                String t1 = ((Integer) v1[2]).toString();
-                String t2 = ((Integer) v1[2]).toString();
-
-                Connection c = new Connection(c1, t1, c2, t2, edge.dump());
-                cir.addConnection(c);
-            } else {
-
-            }
-        }
-
-        return cir;
+//        }
+//
+//        for (CircuitElm edge : edges) {
+//            Object[] v1 = nodeComponents.get(edge.getPost(0));
+//            Object[] v2 = nodeComponents.get(edge.getPost(1));
+//
+////            if (v1 == null) {
+////                ArrayList<CircuitElm> list = map.get(edge.getPost(0));
+////                if (list != null) {
+////                    for (CircuitElm elm : list) {
+////                        if (elm.getPostCount() != 2) {
+////                            Component c = new Component();
+////                            c.setData(elm.dump());
+////                            cir.addComponent(c);
+////                            for (int i = 0; i < elm.getPostCount(); i++) {
+////                                Point p = elm.getPost(i);
+////                                Object[] o = new Object[]{c, elm, i};
+////                                nodeComponents.put(p, o);
+////                                if (edge.getPost(0) == p) {
+////                                    v1 = o;
+////                                }
+////                            }
+////                        }
+////                    }
+////                }
+////            }
+////
+////            if (v2 == null) {
+////                ArrayList<CircuitElm> list = map.get(edge.getPost(1));
+////                if (list != null) {
+////                    for (CircuitElm elm : list) {
+////                        if (elm.getPostCount() != 2) {
+////                            Component c = new Component();
+////                            c.setData(elm.dump());
+////                            cir.addComponent(c);
+////                            for (int i = 0; i < elm.getPostCount(); i++) {
+////                                Point p = elm.getPost(i);
+////                                Object[] o = new Object[]{c, elm, i};
+////                                nodeComponents.put(p, o);
+////                                if (edge.getPost(0) == p) {
+////                                    v2 = o;
+////                                }
+////                            }
+////                        }
+////                    }
+////                }
+////            }
+//            if (v1 != null && v2 != null) {
+//                Component c1 = (Component) v1[0];
+//                Component c2 = (Component) v2[0];
+//
+//                String t1 = ((Integer) v1[2]).toString();
+//                String t2 = ((Integer) v1[2]).toString();
+//
+//                Connection c = new Connection(c1, t1, c2, t2, edge.dump());
+//                cir.addConnection(c);
+//            } else {
+//
+//            }
+//        }
+//
+//        return cir;
     }
 
     private static Circuit createCircuit(CircuitSimulator cs) {
@@ -674,10 +677,10 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
     }
 
     private static Circuit parseString(String text) {
-        return createCircuit2(createCS(text));
+        return createCircuit2(createDummyCS(text));
     }
 
-    private static Graph<String, String> createGraph(Circuit circuit) {
+    public static Graph<String, String> createGraph(Circuit circuit) {
         SparseMultigraph<String, String> graph = new SparseMultigraph<>();
 
         //adiciona vertices
@@ -692,7 +695,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         return graph;
     }
 
-    private static void showGraph(Graph<String, String> graph, boolean show) {
+    public static void showGraph(Graph<String, String> graph, boolean show) {
 
         KKLayout<String, String> layout = new KKLayout(graph);//new FRLayout(graph);
         layout.setSize(new Dimension(400, 400));
@@ -726,7 +729,8 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                 }
             });
             DefaultModalGraphMouse gm = new DefaultModalGraphMouse();
-            gm.setMode(ModalGraphMouse.Mode.PICKING);
+            gm.setMode(ModalGraphMouse.Mode.TRANSFORMING);
+            //gm.setMode(ModalGraphMouse.Mode.PICKING);
             vv.setGraphMouse(gm);
             JFrame frame = new JFrame("Interactive Graph 2D View - DUMP");
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
