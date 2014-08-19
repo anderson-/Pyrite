@@ -15,7 +15,7 @@ import s3f.core.project.Element;
 import s3f.core.ui.tab.TabProperty;
 import s3f.pyrite.core.Circuit;
 import s3f.pyrite.core.Component;
-import s3f.pyrite.types.ModularCircuit;
+import s3f.pyrite.types.CircuitFile;
 import s3f.pyrite.ui.drawing3d.Circuit3DEditPanel;
 
 /**
@@ -27,7 +27,7 @@ public class GraphViewer implements Editor {
 //    private static final ImageIcon ICON = new ImageIcon(ModularCircuitEditor.class.getResource("/resources/icons/fugue/block.png"));
     private final Data data;
     private final JRootPane pane;
-    private ModularCircuit circuit;
+    private CircuitFile circuit;
 
     public GraphViewer() {
         data = new Data("editorTab", "s3f.core.code", "Editor Tab");
@@ -38,8 +38,8 @@ public class GraphViewer implements Editor {
     @Override
     public void setContent(Element content) {
         pane.removeAll();
-        if (content instanceof ModularCircuit) {
-            circuit = (ModularCircuit) content;
+        if (content instanceof CircuitFile) {
+            circuit = (CircuitFile) content;
             data.setProperty(TabProperty.TITLE, content.getName());
             data.setProperty(TabProperty.ICON, content.getIcon());
         }

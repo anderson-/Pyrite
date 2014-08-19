@@ -5,8 +5,14 @@
  */
 package s3f.pyrite.core;
 
+import com.falstad.circuit.CircuitElm;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Vector;
+import s3f.pyrite.ui.components.MyLogicInputElm;
+import s3f.pyrite.ui.components.MyLogicOutputElm;
 
 /**
  *
@@ -124,6 +130,56 @@ public class Circuit {
     public static Circuit union(Circuit[] cset, String... joints) {
         Circuit nc = new Circuit();
         return nc;
+    }
+
+    public void insert(Circuit sub, Component c) {
+        subCircuits.add(sub);
+
+        inputs.clear();
+        outputs.clear();
+        for (Component com : sub.nodes) {
+            Object o = com.whut;
+            if (o instanceof MyLogicInputElm) {
+                inputs.add(com);
+            } else if (o instanceof MyLogicOutputElm) {
+                outputs.add(com);
+            }
+        }
+
+        Collections.sort(inputs, new Comparator<Component>() {
+            @Override
+            public int compare(Component o1, Component o2) {
+                return ((MyLogicInputElm) o1.whut).getName().compareTo(((MyLogicInputElm) o2.whut).getName());
+            }
+        });
+
+        Collections.sort(outputs, new Comparator<Component>() {
+            @Override
+            public int compare(Component o1, Component o2) {
+                return ((MyLogicOutputElm) o1.whut).getName().compareTo(((MyLogicOutputElm) o2.whut).getName());
+            }
+        });
+        
+        ArrayList<Component> all = new ArrayList<>();
+        all.addAll(inputs);
+        all.addAll(outputs);
+        
+        for (Connection con : c.getConnections()){
+            int t = Integer.parseInt(con.getTerminal(c)); //TODO: cuidado terminal com nome :/
+            con.replace(c, all.get(t));
+        }
+        
+        c.setConsumed(true);
+        removeComponent(c);
+        
+        for (Component com : sub.getComponents()){
+            addComponent(com);
+        }
+        
+        for (Connection con : sub.getConnections()){
+            addConnection(con);
+        }
+
     }
 
 }

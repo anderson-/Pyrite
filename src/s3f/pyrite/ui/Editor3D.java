@@ -16,13 +16,19 @@ import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
 import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
+import java.awt.Canvas;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JApplet;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JRootPane;
 import net.infonode.docking.DockingWindow;
@@ -48,6 +54,8 @@ import s3f.pyrite.ui.drawing3d.Circuit3DEditPanel;
  * @author anderson
  */
 public class Editor3D extends DockingWindowAdapter implements Editor {
+
+    static int DEBUG = 0;
 
 //    private static final ImageIcon ICON = new ImageIcon(ModularCircuitEditor.class.getResource("/resources/icons/fugue/block.png"));
     private final Data data;
@@ -89,7 +97,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
             if (!textFile.getText().isEmpty()) {
                 Circuit circuit = parseString(textFile.getText());
                 drawingPanel.setCircuit(circuit);
-                showGraph(createGraph(circuit), true);
+//                showGraph(createGraph(circuit), true);
             } else {
                 drawingPanel.setCircuit(new Circuit());
             }
@@ -138,6 +146,32 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         f.pack();
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.setVisible(true);
+        return cs;
+    }
+
+    public static CircuitSimulator createCS2(String text) {
+        JApplet window = new JApplet();
+        final CircuitSimulator cs = new CircuitSimulator(false);
+        cs.setStopped(false);
+        cs.setContainer(window.getContentPane());
+        cs.startCircuitText = text;
+        {//TODO
+            cs.register(MyLogicInputElm.class);
+            cs.register(MyLogicOutputElm.class);
+            cs.register(SubCircuitElm.class);
+        }
+        cs.init();
+        window.setJMenuBar(cs.getGUI().createGUI(true));
+        cs.posInit();
+//        cs.analyzeCircuit();
+//        cs.updateCircuit(null);
+//        cs.updateCircuit(null);
+//        JFrame f = new JFrame();
+//        f.setContentPane(window);
+//        f.setSize(new Dimension(400, 400));
+//        f.pack();
+//        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+//        f.setVisible(true);
         return cs;
     }
 
@@ -204,10 +238,23 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                 + "R 272 48 240 48 0 0 40.0 3.6 0.0 0.0 0.5\n"
                 + "- 304 144 352 144 0 2.5 s\n"
                 + "w 272 144 304 144 0\n";
-        Circuit c = createCircuit2(createCS(def));
-        showGraph(createGraph(c), true);
-        String s = dumpCircuit(c, createDummyCS(""));
-        createCS(s);
+
+        String alg = "$ 0 5.0E-6 1.0312258501325766 50.0 5.0 50.0\n"
+                + "t 224 176 272 176 0 1 0.0 0.0 100.0\n"
+                + "r 272 160 288 96 0 100.0\n"
+                + "t 272 192 272 240 0 1 0.0 0.0 100.0\n"
+                + "t 224 176 176 176 0 1 0.0 0.0 100.0\n";
+
+        String alg2 = "$ 0 5.0E-6 1.0312258501325766 50.0 5.0 50.0\n"
+                + "t 192 208 240 208 0 1 0.0 0.0 100.0\n"
+                + "r 240 192 256 128 0 100.0\n"
+                + "t 288 240 240 240 0 1 0.0 0.0 100.0\n"
+                + "t 192 208 144 208 0 1 0.0 0.0 100.0\n";
+
+        Circuit c = createCircuit2(createDummyCS(alg2));
+        //showGraph(c, "");
+        //String s = dumpCircuit(c, createDummyCS(""));
+        //createCS(s);
     }
 
     private static void testJoin() {
@@ -254,13 +301,115 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         cir.removeConnection(a.appendAndConsume(b));
         cir.removeComponent(b);
 
-        showGraph(createGraph(cir), true);
+        showGraph(cir, "");
     }
 
     private static Circuit createCircuit2(CircuitSimulator cs) {
         Circuit cir = new Circuit();
 
+        {
+            if (cs.elmListSize() == 0) {
+                return cir;
+            } else {
+                cs.analyzeCircuit();//nodeListSize
+            }
+
+            HashMap<CircuitElm, Component> nodes = new HashMap<>();
+            for (int i = 0; i < cs.elmListSize(); i++) {
+                CircuitElm elm = cs.getElm(i);
+                Component c = new Component();
+                c.whut = elm;
+                c.setName(elm.getDumpClass().getSimpleName());
+                cir.addComponent(c);
+                nodes.put(elm, c);
+            }
+
+            Point p = new Point();
+            for (int i = 0; i < cs.nodeListSize(); i++) {
+                CircuitNode node = cs.getCircuitNode(i);
+                p.setLocation(node.x, node.y);
+                if (node.internal) {
+                    continue;
+                }
+                ArrayList<CircuitNodeLink> w = new ArrayList<>(node.links);
+                for (Iterator<CircuitNodeLink> it = w.iterator(); it.hasNext();) {
+                    CircuitNodeLink linkA = it.next();
+                    CircuitElm a = linkA.elm;
+                    for (CircuitNodeLink linkB : w) {
+                        CircuitElm b = linkB.elm;
+                        if (a != b) {
+                            int ta;
+                            for (ta = 0; ta < a.getPostCount(); ta++) {
+                                if (a.getPost(ta).equals(p)) {
+                                    break;
+                                }
+                            }
+                            int tb;
+                            for (tb = 0; tb < b.getPostCount(); tb++) {
+                                if (b.getPost(tb).equals(p)) {
+                                    break;
+                                }
+                            }
+                            Component ca = nodes.get(a);
+                            Component cb = nodes.get(b);
+                            Connection con = new Connection(ca, "" + ta, cb, "" + tb, "");
+//                            con.whut = a;
+                            cir.addConnection(con);
+                        }
+                    }
+                    it.remove();
+                }
+            }
+            if (DEBUG == 1) {
+                showGraph(cir, "1");
+            }
+
+            for (Map.Entry<CircuitElm, Component> entry : nodes.entrySet()) {
+                CircuitElm e = entry.getKey();
+                if (e.getPostCount() == 2 && !(e instanceof SubCircuitElm)) {
+                    Component c = entry.getValue();
+                    if (c.getConnections().size() == 2) {
+                        //a -> [0] c [1] -> b //testar orientação
+                        Connection ca = c.getConnections().get(0);
+                        Connection cb = c.getConnections().get(1);
+                        Component a = ca.getOtherComponent(c);
+                        Component b = cb.getOtherComponent(c);
+                        String ta = ca.getTerminal(a);
+                        String tb = cb.getTerminal(b);
+                        Connection con = new Connection(a, "" + ta, b, "" + tb, e.dump());
+                        con.whut = e;
+                        cir.addConnection(con);
+                        //remove;
+                        cir.removeConnection(ca);
+                        cir.removeConnection(cb);
+                        cir.removeComponent(c);
+                    }
+                }
+            }
+            if (DEBUG == 2) {
+                showGraph(cir, "2");
+            }
+
+            for (Map.Entry<CircuitElm, Component> entry : nodes.entrySet()) {
+                CircuitElm e = entry.getKey();
+                if (e instanceof SubCircuitElm) {
+                    SubCircuitElm subCircuitElm = (SubCircuitElm) e;
+                    Component c = entry.getValue();
+                    Circuit sub = parseString(subCircuitElm.getCircuit());
+                    cir.insert(sub, c);
+                }
+            }
+            if (DEBUG == 3) {
+                showGraph(cir, "3");
+            }
+        }
+
+        if (true) {
+            return cir;
+        }
+
         HashMap<Point, Component> allNodes = new HashMap<>();
+        HashMap<CircuitElm, Integer> asd = new HashMap<>();
         ArrayList<ArrayList<Component>> w = new ArrayList<>();
 
         //create one node for each terminal of each component
@@ -271,12 +420,22 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                 Point p = elm.getPost(j);
                 if (!allNodes.containsKey(p)) {
                     Component c = new Component();
+                    c.whut = elm;
                     s.add(c);
                     cir.addComponent(c);
                     allNodes.put(p, c);
+                    if (!asd.containsKey(elm)) {
+                        asd.put(elm, j);
+                    }
+                } else {
+                    System.out.println("*");
                 }
             }
             w.add(s);
+        }
+        showGraph(cir, "1");
+        if (true) {
+            return cir;
         }
 
         //wire everthing up
@@ -288,10 +447,10 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                 Component c2 = allNodes.get(elm.getPost(0));
                 if (c2 != null && c2 != c) {
                     Connection con = c2.createConnection(c);
-                    con.setSubComponent(elm.dump());
                     if (elm.getPostCount() > 2) {
                         con.setTerminalA("" + j);
                     } else {
+                        con.setSubComponent(elm.dump());
                         con.setTerminalA("" + 0);
                     }
                     con.whut = elm;
@@ -299,35 +458,74 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                 }
             }
         }
+        showGraph(cir, "2");
 
-        //defines what's node and what's edge
-        ArrayList<CircuitElm> nodes = new ArrayList<>();
-        ArrayList<CircuitElm> edges = new ArrayList<>();
-        for (int i = 0; i < cs.elmListSize(); i++) {
-            CircuitElm elm = cs.getElm(i);
-            if (elm.getPostCount() == 2) {
-                edges.add(elm);
-            } else {
-                nodes.add(elm);
-            }
-        }
-
-        //join all the terminal-nodes created before of each component into a single component 
-        for (CircuitElm elm : nodes) {
-            Component c = null;
+//        //defines what's node and what's edge
+//        ArrayList<CircuitElm> nodes = new ArrayList<>();
+//        ArrayList<CircuitElm> edges = new ArrayList<>();
+//        for (int i = 0; i < cs.elmListSize(); i++) {
+//            CircuitElm elm = cs.getElm(i);
+//            if (elm.getPostCount() == 2) {
+//                edges.add(elm);
+//            } else {
+//                nodes.add(elm);
+//            }
+//        }
+//
+//        //join all the terminal-nodes created before of each component into a single component 
+//        for (CircuitElm elm : nodes) {
+//            Component c = null;
+//            for (int i = 0; i < elm.getPostCount(); i++) {
+//                Component t = allNodes.get(elm.getPost(i));
+//                if (c == null) {
+//                    c = t;
+//                    System.out.println(">" + c);
+//                } else {
+//                    Connection con = t.getConnection(c);
+//                    if (con != null && con.whut == t.whut && c != t) {
+//                        cir.removeConnection(c.appendAndConsume(t));
+//                        cir.removeComponent(t);
+//                        System.out.println(t + " con");
+//                    } else {
+//                        System.out.println(t + " ig");
+//                    }
+//                }
+//            }
+////            c.whut = elm;
+////            c.setData(elm.dump());
+////            c.setName(elm.getClass().getSimpleName());
+//        }
+////        for (CircuitElm elm : nodes) {
+////            for (int i = 0; i < elm.getPostCount(); i++) {
+////                Component c = allNodes.get(elm.getPost(i));
+////                if (!c.isConsumed()) {
+////                    c.whut = elm;
+////                    c.setData(elm.dump());
+////                    c.setName(elm.getClass().getSimpleName());
+////                    break;
+////                }
+////            }
+//        }
+        for (Map.Entry<CircuitElm, Integer> e : asd.entrySet()) {
+            CircuitElm elm = e.getKey();
+            Component c = allNodes.get(elm.getPost(e.getValue()));
+            System.out.println(">" + c);
             for (int i = 0; i < elm.getPostCount(); i++) {
                 Component t = allNodes.get(elm.getPost(i));
-                if (c == null) {
-                    c = t;
-                } else {
-                    cir.removeConnection(c.appendAndConsume(t));
-                    cir.removeComponent(t);
+                if (c != t) {
+                    Connection con = t.getConnection(c);
+                    if (con != null && con.whut == t.whut) {
+                        cir.removeConnection(c.appendAndConsume(t));
+                        cir.removeComponent(t);
+                        System.out.println(t + " con");
+                    } else {
+                        System.out.println(t + " ig");
+                    }
                 }
             }
-            c.whut = elm;
-            c.setData(elm.dump());
-            c.setName(elm.getClass().getSimpleName());
         }
+
+        showGraph(cir, "3");
 
         return cir;
 
@@ -676,8 +874,8 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         return cir;
     }
 
-    private static Circuit parseString(String text) {
-        return createCircuit2(createDummyCS(text));
+    public static Circuit parseString(String text) {
+        return createCircuit2(createCS2(text));
     }
 
     public static Graph<String, String> createGraph(Circuit circuit) {
@@ -695,7 +893,11 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         return graph;
     }
 
-    public static void showGraph(Graph<String, String> graph, boolean show) {
+    public static void showGraph(Circuit circuit, String title) {
+        showGraph(createGraph(circuit), true, title);
+    }
+
+    public static void showGraph(Graph<String, String> graph, boolean show, String title) {
 
         KKLayout<String, String> layout = new KKLayout(graph);//new FRLayout(graph);
         layout.setSize(new Dimension(400, 400));
@@ -732,7 +934,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
             gm.setMode(ModalGraphMouse.Mode.TRANSFORMING);
             //gm.setMode(ModalGraphMouse.Mode.PICKING);
             vv.setGraphMouse(gm);
-            JFrame frame = new JFrame("Interactive Graph 2D View - DUMP");
+            JFrame frame = new JFrame(title);
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frame.getContentPane().add(vv);
             frame.pack();
@@ -745,6 +947,10 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 //        System.out.println(">>\n" + s);
 //        createCS(s);
 //    }
+    public static String dumpCircuit(Circuit circuit) {
+        return dumpCircuit(circuit, createDummyCS(""));
+    }
+
     private static String dumpCircuit(Circuit circuit, CircuitSimulator cs) {
         StringBuilder sb = new StringBuilder();
 

@@ -21,7 +21,7 @@ import s3f.pyrite.ui.Editor3D;
  */
 public class Position3DFile extends ComplexElement implements TextFile {
 
-    public static final Element.CategoryData FLOWCHART_FILES = new Element.CategoryData("Position File", "pf", new ImageIcon(ModularCircuit.class.getResource("/resources/icons/fugue/wand-hat.png")), new Position3DFile());
+    public static final Element.CategoryData FLOWCHART_FILES = new Element.CategoryData("Position File", "pf", new ImageIcon(CircuitFile.class.getResource("/resources/icons/fugue/wand-hat.png")), new Position3DFile());
     
     private String text = "";
 

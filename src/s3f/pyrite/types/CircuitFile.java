@@ -8,30 +8,29 @@ package s3f.pyrite.types;
 import javax.swing.ImageIcon;
 import s3f.core.plugin.Plugabble;
 import s3f.core.project.ComplexElement;
-import s3f.core.project.Editor;
 import s3f.core.project.Element;
 import s3f.core.project.Resource;
 import s3f.core.project.editormanager.TextFile;
 import s3f.pyrite.ui.CircuitEditor;
-import s3f.pyrite.ui.Editor3D;
+import s3f.pyrite.ui.GraphViewer;
 
 /**
  *
  * @author anderson
  */
-public class ModularCircuit extends ComplexElement implements TextFile {
+public class CircuitFile extends ComplexElement implements TextFile {
 
-    public static final Element.CategoryData FLOWCHART_FILES = new Element.CategoryData("Modular Circuit", "mc", new ImageIcon(ModularCircuit.class.getResource("/resources/icons/fugue/cube.png")), new ModularCircuit());
+    public static final Element.CategoryData FLOWCHART_FILES = new Element.CategoryData("Circuit Module", "cm", new ImageIcon(CircuitFile.class.getResource("/resources/icons/fugue/circuits.png")), new CircuitFile());
 
     private String text = "";
 
-    public ModularCircuit() {
-        super("circuit", "/resources/icons/fugue/modular.png", FLOWCHART_FILES, new Class[]{CircuitEditor.class});
+    public CircuitFile() {
+        super("circuit", "/resources/icons/fugue/circuit.png", FLOWCHART_FILES, new Class[]{CircuitEditor.class, GraphViewer.class});
     }
 
     @Override
     public Plugabble createInstance() {
-        return new ModularCircuit();
+        return new CircuitFile();
     }
 
     @Override

@@ -117,7 +117,7 @@ public Object whut = null;
 
     @Override
     public String toString() {
-        return a.getUID() + (terminalA.isEmpty() ? "" : " [" + terminalA + "]") + (subComponent.isEmpty() ? " -> " : " --(" + subComponent + ")-> ") + (terminalB.isEmpty() ? "" : "[" + terminalB + "] ") + b.getUID();
+        return a.getUID() + (terminalA.isEmpty() ? "" : " [" + terminalA + "]") + (subComponent.isEmpty() ? " -> " : " --(" + subComponent + ")-> ") + (terminalB.isEmpty() ? "" : "[" + terminalB + "] ") + b.getUID() + "."+whut+".";
     }
 
     public Component getOtherComponent(Component c) {

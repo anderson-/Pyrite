@@ -92,4 +92,8 @@ public class MyLogicOutputElm extends LogicOutputElm {
     public int getShortcut() {
         return '-';
     }
+
+    public String getName() {
+        return name;
+    }
 }

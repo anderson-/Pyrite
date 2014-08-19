@@ -11,8 +11,7 @@ import javax.swing.UIManager;
 import s3f.core.plugin.PluginBuilder;
 import s3f.core.ui.GUIBuilder;
 import static s3f.core.ui.MainUI.createLookAndFeel;
-import s3f.pyrite.types.CircuitModule;
-import s3f.pyrite.types.ModularCircuit;
+import s3f.pyrite.types.CircuitFile;
 import s3f.pyrite.types.Position3DFile;
 import s3f.util.ColorUtils;
 import s3f.util.RandomColor;
@@ -26,21 +25,30 @@ public class Builder extends PluginBuilder {
 
         GUIBuilder.setSplashScreen(splash);
 
-        GUIBuilder.setLookAndFeel(createLookAndFeel(ColorUtils.changeHSBA(Color.blue, 0, -.6f, -.2f, 0)));
+        GUIBuilder.setLookAndFeel(createLookAndFeel(Color.decode("#20629F")));
         GUIBuilder.setIcon(Toolkit.getDefaultToolkit().getImage(Builder.class
                 .getResource("/resources/g6603-6.png")));
 
-        String style = "body {color:#000; font-family:serif; margin: 4px; }"
+        String style = "body {color:#000; font-family:monospaced; margin: 4px; }"
                 + "h1 {color: blue;}"
                 + "h2 {color: #ff0000;}"
                 + "pre {font : 10px monaco; color : black; background-color : #fafafa; }";
 
+        String logosrc = Builder.class.getClassLoader().getResource("resources/g6603-6.png").toString();
+
         String html = "<html>\n"
-                + "<body>\n"
-                + "<h1>Welcome!</h1>\n"
-                + "<h2>This is an H2 header</h2>\n"
-                + "<p>This is some sample text</p>\n"
-                + "<p><a href=\"https://github.com/anderson-\">teste</a></p>\n"
+                + "<body bgcolor=\"#E6E6FA\">\n"
+                //+ "<img src=\"" + logosrc + "\" alt=\"some_text\" align=\"float:left\" >\n"
+                + "<h1>Welcome to the pre-released version of Pyrite! - by Anderson Antunes</h1>\n"
+                + "<h2>Remember: This is an unfisished build with lots of bugs, just for the curious ones (∩_∩)</h2>\n"
+                + "<h3>2D Schematic editor shortcuts</h3>\n"
+                + "<p>[;] - Sub-Circuit (edit for choosing the circuit)\n"
+                + "<p>[+] - Input\n"
+                + "<p>[-] - Output\n"
+                + "<h3>3D schematic editor shortcuts</h3>\n"
+                + "<p>[1]~[5] - change grid\n"
+                + "<p>[r] - place source and ground in positions {4, 2, 2} and {2, 2, 2}, respectively\n"
+                + "<p>[ENTER] - start fitting\n"
                 + "</body>\n";
         GUIBuilder.setWelcomePage(html, style);
     }
@@ -55,8 +63,7 @@ public class Builder extends PluginBuilder {
 //        o.getData().setProperty("procedure", new If());
 //        pm.registerFactory(o);
 //        
-        pm.registerFactory(ModularCircuit.FLOWCHART_FILES);
-        pm.registerFactory(CircuitModule.FLOWCHART_FILES);
+        pm.registerFactory(CircuitFile.FLOWCHART_FILES);
         pm.registerFactory(Position3DFile.FLOWCHART_FILES);
     }
 

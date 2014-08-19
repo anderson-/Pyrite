@@ -160,7 +160,7 @@ public class DefaultGridFittingTool implements GridFittingTool {
                 s.offer(v);
             }
         }
-        Editor3D.showGraph(Editor3D.createGraph(circuit), true);
+//        Editor3D.showGraph(Editor3D.createGraph(circuit), true);
     }
 
     public void sleep() {

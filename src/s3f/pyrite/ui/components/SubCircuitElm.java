@@ -20,7 +20,7 @@ import s3f.core.plugin.PluginManager;
 import s3f.core.plugin.SimulableElement;
 import s3f.core.project.Element;
 import s3f.core.project.Project;
-import s3f.pyrite.types.CircuitModule;
+import s3f.pyrite.types.CircuitFile;
 import s3f.pyrite.ui.Editor3D;
 
 /**
@@ -34,6 +34,7 @@ public class SubCircuitElm extends ChipElm {
     private ArrayList<MyLogicInputElm> inputs = new ArrayList<>();
     private ArrayList<MyLogicOutputElm> outputs = new ArrayList<>();
     private String name = "";
+    private String circuit = "";
 
     boolean hasReset() {
         return false;
@@ -53,7 +54,7 @@ public class SubCircuitElm extends ChipElm {
     }
 
     public void setInternalCircuitSimulator(CircuitSimulator cs) {
-        if (this.cs != null){
+        if (this.cs != null) {
             System.out.println(this.cs.getParent());
         }
         this.cs = cs;
@@ -65,7 +66,7 @@ public class SubCircuitElm extends ChipElm {
     }
 
     public String getChipName() {
-        return "Full Adder";
+        return name;
     }
 
     public void setupPins() {
@@ -170,7 +171,7 @@ public class SubCircuitElm extends ChipElm {
                 Project project = (Project) em.getProperty("s3f.core.project.tmp", "project");
                 int i = 0;
                 for (s3f.core.project.Element e : project.getElements()) {
-                    if (e instanceof CircuitModule) {
+                    if (e instanceof CircuitFile) {
                         ei.choice.add(e.getName());
                         if (e.getName().equals(name)) {
                             ei.choice.select(i);
@@ -195,14 +196,19 @@ public class SubCircuitElm extends ChipElm {
         }
     }
 
+    public String getCircuit() {
+        return circuit;
+    }
+
     private void reload() {
         EntityManager em = PluginManager.getInstance().createFactoryManager(null);
         Project project = (Project) em.getProperty("s3f.core.project.tmp", "project");
         for (s3f.core.project.Element e : project.getElements()) {
-            if (e instanceof CircuitModule) {
-                CircuitModule circuitModule = (CircuitModule) e;
+            if (e instanceof CircuitFile) {
+                CircuitFile circuitModule = (CircuitFile) e;
                 if (circuitModule.getName().equals(name)) {
-                    CircuitSimulator cs = Editor3D.createCS(circuitModule.getText());
+                    circuit = circuitModule.getText();
+                    CircuitSimulator cs = Editor3D.createCS2(circuit);
                     setInternalCircuitSimulator(cs);
                     setupPins();
                     allocNodes();

@@ -30,6 +30,7 @@ import s3f.pyrite.core.Component;
 import s3f.pyrite.core.Connection;
 import s3f.pyrite.core.DefaultGridFittingTool;
 import s3f.pyrite.core.Grid;
+import s3f.pyrite.ui.Editor3D;
 
 /**
  *
@@ -50,6 +51,7 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
 
     public int pop = 5;
     public int gen = 5;
+    private String cir = "";
 
     public Circuit3DEditPanel(Circuit circuit) {
         super(800, 600, true);
@@ -268,6 +270,7 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
 
     public void setCircuit(Circuit cir) {
         circuit = cir;
+        this.cir = Editor3D.dumpCircuit(circuit);
         defaultDrawer.setCircuit(circuit);
         pickerBufferDrawer.setCircuit(circuit);
     }
@@ -400,6 +403,7 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
 
         if (applet.keyCode == KeyEvent.VK_BACK_SPACE) {
 //            circuit.reset();
+            this.setCircuit(Editor3D.parseString(cir));
         } else if (applet.keyCode == KeyEvent.VK_ENTER) {
             if (cubThread == null || !cubThread.isAlive()) {
                 cubThread = new Thread() {

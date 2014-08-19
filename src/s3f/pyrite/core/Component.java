@@ -130,7 +130,7 @@ public class Component extends Fixable {
 
     @Override
     public String toString() {
-        return (coupler ? "+'{" : "+{") + uid + " |" + name + ", '" + data + "', " + Arrays.toString(pos) + ", c = " + conns.size() + ", s = " + shortcut.size() + "}";
+        return (coupler ? "+'{" : "+{") + uid + " |" + name + ", '" + data + "', " + Arrays.toString(pos) + ", c = " + conns.size() + ", s = " + shortcut.size() + "}" + "."+whut+".";
     }
 
     public Connection appendAndConsume(Component c) {

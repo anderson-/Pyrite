@@ -85,4 +85,8 @@ public class MyLogicInputElm extends LogicInputElm {
     public int getShortcut() {
         return '+';
     }
+
+    public String getName() {
+        return name;
+    }
 }
