@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.StringTokenizer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import s3f.core.plugin.EntityManager;
 import s3f.core.plugin.PluginManager;
 import s3f.core.plugin.SimulableElement;
@@ -213,6 +215,10 @@ public class SubCircuitElm extends ChipElm {
                     setupPins();
                     allocNodes();
                     setPoints();
+                    try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException ex) {
+                    }
                     break;
                 }
             }

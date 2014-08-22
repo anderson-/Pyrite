@@ -130,24 +130,24 @@ public class Component extends Fixable {
 
     @Override
     public String toString() {
-        return (coupler ? "+'{" : "+{") + uid + " |" + name + ", '" + data + "', " + Arrays.toString(pos) + ", c = " + conns.size() + ", s = " + shortcut.size() + "}" + "."+whut+".";
+        return (coupler ? "+'{" : "+{") + uid + " |" + name + ", '" + data + "', " + Arrays.toString(pos) + ", c = " + conns.size() + ", s = " + shortcut.size() + "}" + "." + whut + ".";
     }
 
     public Connection appendAndConsume(Component c) {
-        if (coupler && c.coupler) {
+        if (c.coupler) {
             Connection old = c.getConnection(this);
-            String ter = "";
+            int ter = 0;
             if (old != null) {
                 c.removeConnection(old);
                 this.removeConnection(old);
                 old.setConsumed(true);
                 ter = old.getTerminal(this);
             } else {
-                System.err.println("WARNING: invalid connection");
+                System.err.println("WARNING: no connection");
             }
             for (Connection con : c.getConnections()) {
                 con.replace(c, this);
-                con.setTerminal(this,ter);
+                con.setTerminal(this, ter);
                 conns.add(con);
             }
             c.conns.clear();
@@ -162,9 +162,5 @@ public class Component extends Fixable {
         } else {
             throw new IllegalArgumentException("this or c is not an contact");
         }
-    }
-
-    public static Component expand(Component v, Component j) {
-        return null;
     }
 }

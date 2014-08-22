@@ -140,8 +140,18 @@ public class Circuit {
         for (Component com : sub.nodes) {
             Object o = com.whut;
             if (o instanceof MyLogicInputElm) {
+                {
+//                    com.whut = null;
+                    com.setName("?");
+                    com.setCoupler(true);
+                }
                 inputs.add(com);
             } else if (o instanceof MyLogicOutputElm) {
+                {
+//                    com.whut = null;
+                    com.setName("?");
+                    com.setCoupler(true);
+                }
                 outputs.add(com);
             }
         }
@@ -159,24 +169,28 @@ public class Circuit {
                 return ((MyLogicOutputElm) o1.whut).getName().compareTo(((MyLogicOutputElm) o2.whut).getName());
             }
         });
-        
+
         ArrayList<Component> all = new ArrayList<>();
         all.addAll(inputs);
         all.addAll(outputs);
-        
-        for (Connection con : c.getConnections()){
-            int t = Integer.parseInt(con.getTerminal(c)); //TODO: cuidado terminal com nome :/
-            con.replace(c, all.get(t));
+
+        for (Connection con : c.getConnections()) {
+            int t = con.getTerminal(c);
+            Component io = all.get(t);
+            if (io.getConnections().size() == 1){
+                io = io.getConnections().get(0).getOtherComponent(io);
+            }
+            con.replace(c, io);
         }
-        
+
         c.setConsumed(true);
         removeComponent(c);
-        
-        for (Component com : sub.getComponents()){
+
+        for (Component com : sub.getComponents()) {
             addComponent(com);
         }
-        
-        for (Connection con : sub.getConnections()){
+
+        for (Connection con : sub.getConnections()) {
             addConnection(con);
         }
 

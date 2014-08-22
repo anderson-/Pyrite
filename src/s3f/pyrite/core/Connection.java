@@ -5,19 +5,22 @@
  */
 package s3f.pyrite.core;
 
+import com.falstad.circuit.elements.WireElm;
+
 /**
  *
  * @author antunes
  */
 public class Connection extends Fixable {
-public Object whut = null;
+
+    public Object whut = null;
     private static int ID = 0;
     //id
     private int uid;
     private Component a;
     private Component b;
-    private String terminalA;
-    private String terminalB;
+    private int terminalA;
+    private int terminalB;
     private String subComponent;
     private boolean satisfied;
 
@@ -28,7 +31,7 @@ public Object whut = null;
         satisfied = false;
     }
 
-    public Connection(Component a, String terminalA, Component b, String terminalB, String subComponent) {
+    public Connection(Component a, int terminalA, Component b, int terminalB, String subComponent) {
         this(subComponent);
         this.a = a;
         this.b = b;
@@ -39,11 +42,11 @@ public Object whut = null;
     }
 
     public Connection(Component a, Component b, String subComponent) {
-        this(a, "", b, "", subComponent);
+        this(a, 0, b, 0, subComponent);
     }
 
     public Connection(Component a, Component b) {
-        this(a, "", b, "", "");
+        this(a, 0, b, 0, "");
     }
 
     public Component getA() {
@@ -62,39 +65,39 @@ public Object whut = null;
         this.b = b;
     }
 
-    public String getTerminalA() {
+    public int getTerminalA() {
         return terminalA;
     }
 
-    public void setTerminalA(String terminalA) {
+    public void setTerminalA(int terminalA) {
         this.terminalA = terminalA;
     }
 
-    public String getTerminalB() {
+    public int getTerminalB() {
         return terminalB;
     }
 
-    public String getTerminal(Component c) {
-        if (c == a){
-           return terminalA; 
+    public int getTerminal(Component c) {
+        if (c == a) {
+            return terminalA;
         } else {
-           return terminalB; 
+            return terminalB;
         }
     }
 
-    public void setTerminalB(String terminalB) {
+    public void setTerminalB(int terminalB) {
         this.terminalB = terminalB;
     }
 
     @Override
     public void setConsumed(boolean consumed) {
         super.setConsumed(consumed);
-        if (consumed){
+        if (consumed) {
             a.removeConnection(this);
             b.removeConnection(this);
         }
     }
-    
+
     public String getSubComponent() {
         return subComponent;
     }
@@ -112,12 +115,12 @@ public Object whut = null;
     }
 
     public boolean isShort() {
-        return subComponent.isEmpty();
+        return subComponent.isEmpty() && (whut == null || whut instanceof WireElm);
     }
 
     @Override
     public String toString() {
-        return a.getUID() + (terminalA.isEmpty() ? "" : " [" + terminalA + "]") + (subComponent.isEmpty() ? " -> " : " --(" + subComponent + ")-> ") + (terminalB.isEmpty() ? "" : "[" + terminalB + "] ") + b.getUID() + "."+whut+".";
+        return a.getUID() + " [" + terminalA + "]" + (subComponent.isEmpty() ? " -> " : " --(" + subComponent + ")-> ") + "[" + terminalB + "] " + b.getUID() + "." + whut + ".";
     }
 
     public Component getOtherComponent(Component c) {
@@ -136,11 +139,36 @@ public Object whut = null;
         }
     }
 
-    void setTerminal(Component c, String terminal) {
-        if (a == c){
+    void setTerminal(Component c, int terminal) {
+        if (a == c) {
             setTerminalA(terminal);
         } else {
             setTerminalB(terminal);
         }
+    }
+
+    void setOtherTerminal(Component c, int terminal) {
+        if (a != c) {
+            setTerminalA(terminal);
+        } else {
+            setTerminalB(terminal);
+        }
+    }
+
+    public Connection shiftA(Component splitter) {
+        Connection con = splitter.createConnection(a);
+        con.setOtherTerminal(splitter, terminalA);
+        terminalA = 0;
+        a = splitter;
+        return con;
+    }
+
+    public void swap() {
+        Component t = a;
+        a = b;
+        b = t;
+        int i = terminalA;
+        terminalA = terminalB;
+        terminalB = i;
     }
 }

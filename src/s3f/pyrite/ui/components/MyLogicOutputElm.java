@@ -1,5 +1,6 @@
 package s3f.pyrite.ui.components;
 
+import com.falstad.circuit.CircuitElm;
 import com.falstad.circuit.EditInfo;
 import com.falstad.circuit.elements.LogicOutputElm;
 import java.awt.*;
@@ -11,7 +12,16 @@ public class MyLogicOutputElm extends LogicOutputElm {
 
     public MyLogicOutputElm(int xx, int yy) {
         super(xx, yy);
-        name = "s";
+        int n = 0;
+        if (sim != null) {
+            for (int i = 0; i < sim.elmListSize(); i++) {
+                CircuitElm c = sim.getElm(i);
+                if (c instanceof MyLogicOutputElm) {
+                    n++;
+                }
+            }
+        }
+        name = Character.toString((char) (83 + n));//'S'
     }
 
     public MyLogicOutputElm(int xa, int ya, int xb, int yb, int f, StringTokenizer st) {

@@ -78,7 +78,7 @@ public class DefaultGridFittingTool implements GridFittingTool {
         public int sleep = 0;
         public boolean chain = true;
         public long seed = 0;
-        public boolean shuffleNg = false;
+        public boolean shuffleNg = true;
         public boolean optimize = false;
 
     }

@@ -16,6 +16,7 @@ import java.awt.Point;
 import static java.lang.Math.PI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import processing.core.PApplet;
 import static processing.core.PConstants.QUAD_STRIP;
 import static processing.core.PConstants.TRIANGLES;
@@ -403,7 +404,18 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
 
         if (applet.keyCode == KeyEvent.VK_BACK_SPACE) {
 //            circuit.reset();
-            this.setCircuit(Editor3D.parseString(cir));
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        int i = print("resetting...");
+                        setCircuit(Editor3D.parseString(cir));
+                        print(i, "resetting... done.");
+                    } catch (ThreadDeath e) {
+                        print("break");
+                    }
+                }
+            }.start();
         } else if (applet.keyCode == KeyEvent.VK_ENTER) {
             if (cubThread == null || !cubThread.isAlive()) {
                 cubThread = new Thread() {
@@ -451,8 +463,29 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
             }
         } else if (applet.keyCode == KeyEvent.VK_R) {
 //            circuit.decubeficate();
-            circuit.getComponent("RailElm").setPos(new int[]{4, 2, 2});
-            circuit.getComponent("GroundElm").setPos(new int[]{2, 2, 2});
+            Component gnd = circuit.getComponent("GroundElm");
+            Component vcc = circuit.getComponent("RailElm");
+
+            if (vcc == null) {
+                List<Component> components = circuit.getComponents();
+                if (components != null && !components.isEmpty()) {
+                    vcc = components.get((int) (components.size() * Math.random()));
+                }
+            }
+
+            if (gnd == null) {
+                List<Component> components = circuit.getComponents();
+                if (components != null && !components.isEmpty()) {
+                    gnd = components.get((int) (components.size() * Math.random()));
+                }
+            }
+
+            if (gnd != null) {
+                gnd.setPos(new int[]{2, 2, 2});
+            }
+            if (vcc != null) {
+                vcc.setPos(new int[]{4, 2, 2});
+            }
         } else if (applet.keyCode == KeyEvent.VK_P) {
 //            if (placeThread == null || !placeThread.isAlive()) {
 //                placeThread = new Thread() {

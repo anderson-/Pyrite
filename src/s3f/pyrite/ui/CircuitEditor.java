@@ -25,6 +25,9 @@ import s3f.core.project.Editor;
 import s3f.core.project.Element;
 import s3f.core.project.editormanager.TextFile;
 import s3f.core.ui.tab.TabProperty;
+import s3f.pyrite.core.Circuit;
+import static s3f.pyrite.ui.Editor3D.showGraph;
+import s3f.pyrite.ui.components.DigitalLogicTester;
 import s3f.pyrite.ui.components.MyLogicInputElm;
 import s3f.pyrite.ui.components.MyLogicOutputElm;
 import s3f.pyrite.ui.components.SubCircuitElm;
@@ -39,7 +42,7 @@ public class CircuitEditor implements Editor {
     private final Data data;
     private final CircuitSimulator circuitSimulator;
     private TextFile circuit;
-    
+
     public CircuitEditor() {
         data = new Data("editorTab", "s3f.core.code", "Editor Tab");
         JApplet window = new JApplet();
@@ -49,31 +52,72 @@ public class CircuitEditor implements Editor {
 //        circuitSimulator.register(MyLogicInputElm.class);
 //        circuitSimulator.register(MyLogicOutputElm.class);
         circuitSimulator.init();
-        
+
         window.setJMenuBar(circuitSimulator.getGUI().createGUI(false));
         circuitSimulator.posInit();
-        final JSpinner sp = new JSpinner();
-        sp.setModel(new SpinnerNumberModel(0, 0, 3, 1));
-        sp.addChangeListener(new ChangeListener() {
+        final JSpinner debugLevel = new JSpinner();
+        debugLevel.setModel(new SpinnerNumberModel(Editor3D.DEBUG, 0, Editor3D.DEBUG, 1));
+        debugLevel.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent ce) {
-                Editor3D.DEBUG = (int) sp.getValue();
+                Editor3D.DEBUG = (int) debugLevel.getValue();
             }
         });
-        JButton button = new JButton("Convert!");
-        button.addActionListener(new ActionListener() {
+        JButton convertButton = new JButton("Convert!");
+        convertButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                Editor3D.parseString(circuitSimulator.dumpCircuit());
+                new Thread() {
+                    public void run() {
+                        Circuit cir = Editor3D.parseString(circuitSimulator.dumpCircuit());
+                    }
+                }.start();
             }
         });
-        window.getContentPane().add(sp);
-        window.getContentPane().add(button);
+        JButton convertAndRunButton = new JButton("Convert and run!");
+        convertAndRunButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                new Thread() {
+                    public void run() {
+                        Circuit cir = Editor3D.parseString(circuitSimulator.dumpCircuit());
+                    }
+                }.start();
+            }
+        });
+        final JSpinner animTimestep = new JSpinner();
+        animTimestep.setModel(new SpinnerNumberModel(300, 0, 10000, 10));
+        animTimestep.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent ce) {
+                Editor3D.SLEEP = (int) animTimestep.getValue();
+            }
+        });
+        JButton convertAndAnimate = new JButton("Animate!");
+        convertAndAnimate.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                new Thread() {
+                    public void run() {
+                        int d = Editor3D.DEBUG;
+                        Editor3D.DEBUG = 0;
+                        Circuit cir = Editor3D.parseString(circuitSimulator.dumpCircuit(), true);
+                        Editor3D.createCS(Editor3D.dumpCircuit(cir));
+                        Editor3D.DEBUG = d;
+                    }
+                }.start();
+            }
+        });
+        window.getContentPane().add(debugLevel);
+        window.getContentPane().add(convertButton);
+        window.getContentPane().add(convertAndRunButton);
+        window.getContentPane().add(animTimestep);
+        window.getContentPane().add(convertAndAnimate);
 //        window.pack();
 //        window.setSize(new Dimension(600, 600));
         TabProperty.put(data, "Editor", null, "Editor de código", window);
     }
-    
+
     @Override
     public void setContent(Element content) {
         if (content instanceof TextFile) {
@@ -83,6 +127,7 @@ public class CircuitEditor implements Editor {
             circuitSimulator.register(MyLogicInputElm.class);
             circuitSimulator.register(MyLogicOutputElm.class);
             circuitSimulator.register(SubCircuitElm.class);
+            circuitSimulator.register(DigitalLogicTester.class);
             circuitSimulator.readSetup(circuit.getText());
             circuitSimulator.addCircuitChangeListener(new PropertyChangeListener() {
                 @Override
@@ -90,15 +135,15 @@ public class CircuitEditor implements Editor {
                     circuit.setText(pce.getNewValue().toString());
                 }
             });
-            
+
         }
     }
-    
+
     @Override
     public Element getContent() {
         return circuit;
     }
-    
+
     @Override
     public void update() {
 //        EntityManager em = PluginManager.getInstance().createFactoryManager(null);
@@ -111,22 +156,22 @@ public class CircuitEditor implements Editor {
 //        sim.clear();
 //        sim.add(i);
     }
-    
+
     @Override
     public void selected() {
-        
+
     }
-    
+
     @Override
     public Data getData() {
         return data;
     }
-    
+
     @Override
     public void init() {
-        
+
     }
-    
+
     @Override
     public Plugabble createInstance() {
         return new CircuitEditor();
