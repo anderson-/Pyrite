@@ -12,7 +12,6 @@ import com.falstad.circuit.CircuitSimulator;
 import com.falstad.circuit.elements.GroundElm;
 import com.falstad.circuit.elements.RailElm;
 import com.falstad.circuit.elements.WireElm;
-import edu.uci.ics.jung.algorithms.layout.FRLayout;
 import edu.uci.ics.jung.algorithms.layout.KKLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout;
@@ -22,24 +21,25 @@ import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
 import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
-import java.awt.Canvas;
+import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics;
+import java.awt.Paint;
 import java.awt.Point;
+import java.awt.Stroke;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JApplet;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 import javax.swing.JRootPane;
 import net.infonode.docking.DockingWindow;
 import net.infonode.docking.DockingWindowAdapter;
+import org.apache.commons.collections15.Transformer;
 import quickp3d.DrawingPanel3D.Scene3D;
 import s3f.core.plugin.Data;
 import s3f.core.plugin.Plugabble;
@@ -64,6 +64,7 @@ import s3f.pyrite.ui.drawing3d.Circuit3DEditPanel;
 public class Editor3D extends DockingWindowAdapter implements Editor {
 
     static int DEBUG = 5;
+    static boolean CLOSE = false;
 
 //    private static final ImageIcon ICON = new ImageIcon(ModularCircuitEditor.class.getResource("/resources/icons/fugue/block.png"));
     private final Data data;
@@ -154,7 +155,11 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         f.setContentPane(window);
         f.setSize(new Dimension(400, 400));
         f.pack();
-        //f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        if (CLOSE) {
+            f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        } else {
+            f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        }
         f.setVisible(true);
         return cs;
     }
@@ -262,10 +267,39 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                 + "t 288 240 240 240 0 1 0.0 0.0 100.0\n"
                 + "t 192 208 144 208 0 1 0.0 0.0 100.0\n";
 
-        Circuit c = createCircuit2(createDummyCS(alg2));
+        String filter = "$ 1 5.0E-6 1.0312258501325766 50.0 5.0 50.0\n"
+                + "d 176 176 240 112 1 0.805904783\n"
+                + "d 304 176 240 112 1 0.805904783\n"
+                + "d 240 240 304 176 1 0.805904783\n"
+                + "d 240 240 176 176 1 0.805904783\n"
+                + "+ 176 176 144 176 0 1 false 5.0 0.0 A\n"
+                + "+ 304 176 336 176 0 0 false 5.0 0.0 B\n"
+                + "- 240 112 240 80 0 2.5 S\n"
+                + "- 240 240 240 272 0 2.5 T\n";
+
+//        Circuit c = createCircuit2(createDummyCS(alg2));
         //showGraph(c, "");
         //String s = dumpCircuit(c, createDummyCS(""));
         //createCS(s);
+        Editor3D.DEBUG = 5;
+        Editor3D.SLEEP = 0;
+        Editor3D.CLOSE = true;
+
+        String circuitString = hard;
+        boolean anim = false;
+        if (anim) {
+            new Thread() {
+                @Override
+                public void run() {
+                    JOptionPane.showMessageDialog(null, "Close this dialog to speed thing up.");
+                    Editor3D.SLEEP = 0;
+                }
+            }.start();
+            Editor3D.SLEEP = 500;
+        }
+        Editor3D.createCS(circuitString);
+        Circuit cir = Editor3D.parseString(circuitString, anim);
+        Editor3D.createCS(Editor3D.dumpCircuit(cir));
     }
 
     private static void testJoin() {
@@ -280,9 +314,9 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         Connection y = a.createConnection(c);
         Connection z = a.createConnection(d);
 
-        x.setTerminalA( 0);
-        y.setTerminalA( 1);
-        z.setTerminalA( 2);
+        x.setTerminalA(0);
+        y.setTerminalA(1);
+        z.setTerminalA(2);
 
         cir.addComponent(a);
         cir.addComponent(b);
@@ -362,6 +396,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 //            showGraph(cir, "www", true);
 
             /* place every component as an node */
+            cir.setStatus("placing components as nodes");
             HashMap<CircuitElm, Component> nodes = new HashMap<>();
             for (int i = 0; i < cs.elmListSize(); i++) {
                 CircuitElm elm = cs.getElm(i);
@@ -375,6 +410,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
             }
 
             /* conects all the nodes with empty terminal-riented connections */
+            cir.setStatus("connecting nodes");
             Point p = new Point();
             for (int i = 0; i < cs.nodeListSize(); i++) {
                 CircuitNode node = cs.getCircuitNode(i);
@@ -412,17 +448,22 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                     it.remove();
                 }
             }
+
+            cir.setStatus("done 1");
+            sleep();
             if (DEBUG == 1) {
                 showGraph(cir, "1 - Conected nodes");
+                return cir;
             }
 
             /*
              remove cliques
              */
+            cir.setStatus("removing cliques");
             for (int i = 0; i < cs.nodeListSize(); i++) {
                 CircuitNode cn = cs.getCircuitNode(i);
                 if (!cn.internal && cn.links.size() >= 3) {//triangular clique
-                    Component coupler = new Component("*");
+                    Component coupler = new Component("k");
                     coupler.setCoupler(true);
                     for (CircuitNodeLink linkA : cn.links) {
                         CircuitElm cea = linkA.elm;
@@ -433,22 +474,25 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                                 Component b = nodes.get(ceb);
                                 Connection con = a.getConnection(b);
                                 if (con != null) {
-                                    con.setConsumed(true);
-                                    cir.removeConnection(con);
+                                    con = con.shiftA(coupler);
+                                    cir.addConnection(con);
                                     sleep();
                                 }
                             }
                         }
-                        Connection con = a.createConnection(coupler);
-                        cir.addConnection(con);
                     }
                     cir.addComponent(coupler);
                     sleep();
                 }
             }
 
+            cir.clean();
+            cir.setStatus("done 2");
+            sleep();
+
             if (DEBUG == 2) {
                 showGraph(cir, "2 - remove cliques");
+                return cir;
             }
             /*
              for each component placed before; do
@@ -459,12 +503,20 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
              ___end if
              end for
              */
+            cir.setStatus("reallocating 2-terminal components");
             for (Map.Entry<CircuitElm, Component> entry : nodes.entrySet()) {
                 CircuitElm e = entry.getKey();
                 if (e.getPostCount() == 2 && !(e instanceof SubCircuitElm)) {
                     Component c = entry.getValue();
                     if (c.getConnections().size() == 2) {
-                        //a -> [0] c [1] -> b //testar orientação
+                        /*
+                         a -> [0] c [1] -> b
+                         ca: a -> c
+                         cb: c -> b
+                         a -> [1] c [0] -> b
+                         ca: a <- c
+                         cb: c <- b
+                         */
                         Connection ca = c.getConnections().get(0);
                         Connection cb = c.getConnections().get(1);
 
@@ -472,11 +524,12 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                             //realoc c in the connection ca
                             ca.setSubComponent(e.dump());
                             ca.whut = e;
-                            
-//                            if (ca.getTerminal(c) == 0 && ca.getA() == c){//TODO: alguma coisa tipo isso
-//                                
-//                            }
-                            
+
+                            if (ca.getTerminal(c) == 0 && ca.getA() == c) {
+                                ca.swap();
+                            } else if (ca.getTerminal(c) == 1 && ca.getB() == c) {
+                                ca.swap();
+                            }
                             //set c as an coupler
                             c.whut = null;
                             c.setData(null);
@@ -486,6 +539,12 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                             //realoc c in the connection cb
                             cb.setSubComponent(e.dump());
                             cb.whut = e;
+
+                            if (cb.getTerminal(c) == 0 && cb.getA() == c) {
+                                cb.swap();
+                            } else if (cb.getTerminal(c) == 1 && cb.getB() == c) {
+                                cb.swap();
+                            }
                             //set c as an coupler
                             c.whut = null;
                             c.setData(null);
@@ -493,12 +552,18 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                             c.setCoupler(true);
                         } else {
                             //create a new coupler component
-                            Component coupler = new Component("*");
+                            Component coupler = new Component("k");
                             coupler.setCoupler(true);
                             //split conection and configure the new connection
                             Connection con = ca.shiftA(coupler);
                             con.setSubComponent(e.dump());
                             con.whut = e;
+
+//                            if (con.getTerminal(c) == 1 && con.getB() == c){
+//                                con.swap();
+//                            } else if (cb.getTerminal(c) == 0 && con.getA() == c){
+//                                con.swap();
+//                            }
                             //add new elements
                             cir.addComponent(coupler);
                             cir.addConnection(con);
@@ -512,10 +577,15 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                     }
                 }
             }
+
+            cir.setStatus("done 3");
+            sleep();
             if (DEBUG == 3) {
                 showGraph(cir, "3 - 2-terminal realoc");
+                return cir;
             }
 
+            cir.setStatus("consuming redundant nodes");
             ArrayList<Component[]> consume = new ArrayList<>();
             for (Component a : cir.getComponents()) {
                 if (a.isCoupler()) {
@@ -538,26 +608,39 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                 }
             }
 
+            cir.setStatus("done 4");
+            sleep();
             if (DEBUG == 4) {
                 showGraph(cir, "4 - append and consume");
+                return cir;
             }
 
+            cir.setStatus("parsing and inserting sub-circuits");
             for (Map.Entry<CircuitElm, Component> entry : nodes.entrySet()) {
                 CircuitElm e = entry.getKey();
                 if (e instanceof SubCircuitElm) {
                     SubCircuitElm subCircuitElm = (SubCircuitElm) e;
                     Component c = entry.getValue();
+                    long sleep = SLEEP;
+                    SLEEP = 0;
                     Circuit sub = parseString(subCircuitElm.getCircuit());
+                    SLEEP = sleep;
                     cir.insert(sub, c);
                     sleep();
                 }
             }
 
+            cir.setStatus("connecting positive and negative terminals");
             joinAll(cir, RailElm.class);
+            sleep();
             joinAll(cir, GroundElm.class);
+            sleep();
 
+            cir.setStatus("done 5");
+            sleep();
             if (DEBUG == 5) {
                 showGraph(cir, "5 - SubCircuits");
+                return cir;
             }
         }
 
@@ -605,10 +688,10 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                 if (c2 != null && c2 != c) {
                     Connection con = c2.createConnection(c);
                     if (elm.getPostCount() > 2) {
-                        con.setTerminalA( j);
+                        con.setTerminalA(j);
                     } else {
                         con.setSubComponent(elm.dump());
-                        con.setTerminalA( 0);
+                        con.setTerminalA(0);
                     }
                     con.whut = elm;
                     cir.addConnection(con);
@@ -1020,153 +1103,183 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
     }
 
     public static Circuit parseString(String text, boolean animate) {
+        Circuit cir = new Circuit();
         if (animate) {
-            Circuit cir = new Circuit();
             showGraph(cir, "www", true);
-            return createCircuit2(createDummyCS(text), cir);
-        } else {
-            return createCircuit2(createCS2(text));
         }
+        cir = createCircuit2(createDummyCS(text), cir);
+        if (!animate) {
+            showGraph(cir, "www", false);
+        }
+        return cir;
     }
 
     public static Circuit parseString(String text) {
         return createCircuit2(createCS(text));
     }
 
-    public static Graph<String, String> createGraph(Circuit circuit) {
-        SparseMultigraph<String, String> graph = new SparseMultigraph<>();
+    public static Graph<Component, Connection> createGraph(Circuit circuit) {
+        SparseMultigraph<Component, Connection> graph = new SparseMultigraph<>();
 
         //adiciona vertices
         for (Component v : circuit.getComponents()) {
-            graph.addVertex(v.toString());
+            graph.addVertex(v);
         }
 
         //adciona arestas
         for (Connection c : circuit.getConnections()) {
-            graph.addEdge(c.toString(), c.getA().toString(), c.getB().toString());
+            graph.addEdge(c, c.getA(), c.getB());
         }
 
         return graph;
     }
 
     public static void showGraph(Circuit circuit, String title) {
-        showGraph(createGraph(circuit), circuit, true, title);
-    }
-
-    public static void showGraph(final Graph<String, String> graph, final Circuit circuit, boolean show, final String title) {
-        int w, h;
-        w = h = 400;
-
-        final KKLayout<String, String> layout = new KKLayout(graph);//new FRLayout(graph);
-        layout.setSize(new Dimension(w, h));
-
-        if (show) {
-            final VisualizationViewer<String, String> vv = new VisualizationViewer<>(layout);
-            vv.setPreferredSize(new Dimension(w, h));
-
-            vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller());
-            vv.getRenderContext().setEdgeLabelTransformer(new ToStringLabeller() {
-//                @Override
-//                public String transform(Object v) {
-//                    String s = v.toString();
-//                    return s.substring(0, s.indexOf('['));
-//                }
-            });
-
-            vv.setEdgeToolTipTransformer(new ToStringLabeller() {
-                @Override
-                public String transform(Object v) {
-                    String s = v.toString();
-                    return s;
-                }
-            });
-
-            vv.setVertexToolTipTransformer(new ToStringLabeller() {
-                @Override
-                public String transform(Object v) {
-                    String s = v.toString();
-                    return s;
-                }
-            });
-            DefaultModalGraphMouse gm = new DefaultModalGraphMouse();
-            gm.setMode(ModalGraphMouse.Mode.TRANSFORMING);
-            //gm.setMode(ModalGraphMouse.Mode.PICKING);
-            vv.setGraphMouse(gm);
-            JFrame frame = new JFrame(title + " V:" + graph.getVertexCount() + " E:" + graph.getEdgeCount());
-            JMenuBar jMenuBar = new JMenuBar();
-            jMenuBar.add(gm.getModeMenu());
-            frame.setJMenuBar(jMenuBar);
-            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            frame.getContentPane().add(vv);
-            frame.pack();
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
-        }
+        showGraph(circuit, title, false);
     }
 
     public static void showGraph(final Circuit circuit, final String title, boolean track) {
-        if (!track) {
-            showGraph(createGraph(circuit), circuit, true, title);
-        } else {
-            int w, h;
-            w = h = 400;
+        showGraph(circuit, null, title, track);
+    }
 
-            final SparseMultigraph<Component, Connection> graph = new SparseMultigraph<>();
+    public static void showGraph(final Circuit circuit, Layout<Component, Connection> layout, final String title, boolean track) {
+        int w, h;
+        w = h = 500;
 
-            //adiciona vertices
-            for (Component v : circuit.getComponents()) {
-                graph.addVertex(v);
+        final SparseMultigraph<Component, Connection> graph = new SparseMultigraph<>();
+
+        //adiciona vertices
+        for (Component v : circuit.getComponents()) {
+            graph.addVertex(v);
+        }
+
+        //adciona arestas
+        for (Connection c : circuit.getConnections()) {
+            graph.addEdge(c, c.getA(), c.getB());
+        }
+
+        if (layout == null) {
+            if (track) {
+                SpringLayout<Component, Connection> springLayout = new SpringLayout(graph);
+                springLayout.setSize(new Dimension(w, h));
+//            springLayout.setRepulsionRange(200);
+//            springLayout.setForceMultiplier(.1);
+                layout = springLayout;
+            } else {
+                KKLayout<Component, Connection> kkLayout = new KKLayout(graph);//new FRLayout(graph);
+                kkLayout.setSize(new Dimension(w, h));
+                layout = kkLayout;
             }
+        }
 
-            //adciona arestas
-            for (Connection c : circuit.getConnections()) {
-                graph.addEdge(c, c.getA(), c.getB());
+        VisualizationViewer<Component, Connection> vv = new VisualizationViewer<>(layout);
+        vv.setPreferredSize(new Dimension(w, h));
+
+        vv.getRenderContext().setVertexLabelTransformer(new Transformer<Component, String>() {
+
+            @Override
+            public String transform(Component c) {
+                return c.getUID();
             }
+        });
+//        vv.getRenderContext().setEdgeLabelTransformer(new Transformer<Connection, String>() {
+//
+//            @Override
+//            public String transform(Connection c) {
+//                return c.getUID();
+//            }
+//        });
 
-            final SpringLayout<Component, Connection> layout = new SpringLayout(graph);//new FRLayout(graph);
-            layout.setRepulsionRange(200);
-            layout.setForceMultiplier(.1);
-            layout.setSize(new Dimension(w, h));
+        vv.setEdgeToolTipTransformer(new Transformer<Connection, String>() {
 
-            final VisualizationViewer<Component, Connection> vv = new VisualizationViewer<>(layout);
-            vv.setPreferredSize(new Dimension(w, h));
+            @Override
+            public String transform(Connection c) {
+                return c.toString();
+            }
+        });
 
-//            vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller());
-//            vv.getRenderContext().setEdgeLabelTransformer(new ToStringLabeller() {
-////                @Override
-////                public String transform(Object v) {
-////                    String s = v.toString();
-////                    return s.substring(0, s.indexOf('['));
-////                }
-//            });
-            vv.setEdgeToolTipTransformer(new ToStringLabeller() {
-                @Override
-                public String transform(Object v) {
-                    String s = v.toString();
-                    return s;
+        vv.setVertexToolTipTransformer(new Transformer<Component, String>() {
+
+            @Override
+            public String transform(Component c) {
+                return c.toString();
+            }
+        });
+
+        vv.getRenderContext().setVertexDrawPaintTransformer(new Transformer<Component, Paint>() {
+            @Override
+            public Paint transform(Component c) {
+                if (c.isConsumed()) {
+                    return Color.LIGHT_GRAY;
+                } else {
+                    return Color.BLACK;
                 }
-            });
+            }
+        });
 
-            vv.setVertexToolTipTransformer(new ToStringLabeller() {
-                @Override
-                public String transform(Object v) {
-                    String s = v.toString();
-                    return s;
+        vv.getRenderContext().setVertexFillPaintTransformer(new Transformer<Component, Paint>() {
+            @Override
+            public Paint transform(Component c) {
+                if (c.whut == null || c.whut instanceof WireElm) {
+                    return Color.GRAY;
+                } else if (c.whut instanceof GroundElm) {
+                    return Color.BLUE;
+                } else if (c.whut instanceof RailElm) {
+                    return Color.YELLOW;
+                } else if (c.whut instanceof MyLogicInputElm) {
+                    return Color.GREEN;
+                } else if (c.whut instanceof MyLogicOutputElm) {
+                    return Color.MAGENTA;
+                } else {
+                    return Color.RED;
                 }
-            });
-            DefaultModalGraphMouse gm = new DefaultModalGraphMouse();
-            gm.setMode(ModalGraphMouse.Mode.TRANSFORMING);
-            //gm.setMode(ModalGraphMouse.Mode.PICKING);
-            vv.setGraphMouse(gm);
-            final JFrame frame = new JFrame(title + " V:" + graph.getVertexCount() + " E:" + graph.getEdgeCount());
-            JMenuBar jMenuBar = new JMenuBar();
-            jMenuBar.add(gm.getModeMenu());
-            frame.setJMenuBar(jMenuBar);
-            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            frame.getContentPane().add(vv);
-            frame.pack();
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
+            }
+        });
+
+        vv.getRenderContext().setEdgeStrokeTransformer(new Transformer<Connection, Stroke>() {
+            BasicStroke simple = new BasicStroke(1);
+            BasicStroke dashed = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 5, new float[]{5}, 0);
+
+            @Override
+            public Stroke transform(Connection c) {
+                if (c.isConsumed()) {
+                    return dashed;
+                } else {
+                    return simple;
+                }
+            }
+        });
+
+        vv.getRenderContext().setEdgeDrawPaintTransformer(new Transformer<Connection, Paint>() {
+            @Override
+            public Paint transform(Connection c) {
+                if (c.isConsumed()) {
+                    return Color.LIGHT_GRAY;
+                } else {
+                    if (c.whut == null) {
+                        return Color.BLACK;
+                    } else if (c.whut instanceof WireElm) {
+                        return Color.BLUE;
+                    } else {
+                        return Color.CYAN.darker();
+                    }
+                }
+            }
+        });
+
+        DefaultModalGraphMouse gm = new DefaultModalGraphMouse();
+        gm.setMode(ModalGraphMouse.Mode.TRANSFORMING);
+        vv.setGraphMouse(gm);
+        final JFrame frame = new JFrame(title + " V:" + graph.getVertexCount() + " E:" + graph.getEdgeCount());
+        JMenuBar jMenuBar = new JMenuBar();
+        jMenuBar.add(gm.getModeMenu());
+        frame.setJMenuBar(jMenuBar);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.getContentPane().add(vv);
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+        if (track) {
             new Thread() {
                 @Override
                 public void run() {
@@ -1182,6 +1295,13 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                                 for (Connection c : circuit.getConnections()) {
                                     if (!graph.getEdges().contains(c)) {
                                         graph.addEdge(c, c.getA(), c.getB());
+                                    } else {
+                                        Component a = graph.getEndpoints(c).getFirst();
+                                        Component b = graph.getEndpoints(c).getFirst();
+                                        if ((a != c.getA() || b != c.getB()) && (a != c.getB() || b != c.getA())) {
+                                            graph.removeEdge(c);
+                                            graph.addEdge(c, c.getA(), c.getB());
+                                        }
                                     }
                                 }
                                 for (Component v : graph.getVertices()) {
@@ -1194,16 +1314,10 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                                         graph.removeEdge(v);
                                     }
                                 }
-
-                                //layout.initialize(); 
-                                //layout.step();
-//                                layout.adjustForGravity();
-//                                layout.isIncremental()
-//                                layout.reset();
-                            } catch (java.util.ConcurrentModificationException ex) {
-                                ex.printStackTrace();
+                            } catch (Exception ex) {
+//                                ex.printStackTrace();
                             }
-                            frame.setTitle(title + " V:" + graph.getVertexCount() + " E:" + graph.getEdgeCount());
+                            frame.setTitle(title + " V:" + graph.getVertexCount() + " E:" + graph.getEdgeCount() + " - " + circuit.getStatus());
 //                            vv.repaint();
                         }
                     } catch (Exception ex) {
@@ -1213,6 +1327,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 
             }.start();
         }
+
     }
 
 //    public static void main(String[] args) {
@@ -1225,21 +1340,34 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
     }
 
     private static String dumpCircuit(Circuit circuit, CircuitSimulator cs) {
+        int w, h;
+        w = h = 700;
+
         StringBuilder sb = new StringBuilder();
 
-        Graph<String, String> graph = createGraph(circuit);
-        KKLayout<String, String> layout = new KKLayout(graph);//new FRLayout(graph);
-        layout.setSize(new Dimension(400, 400));
+        Graph<Component, Connection> graph = createGraph(circuit);
+        KKLayout<Component, Connection> layout = new KKLayout(graph);//new FRLayout(graph);
+        layout.setSize(new Dimension(w, h));
 
         layout.initialize();
-        for (int i = 0; i < 50; i++) {
+        int i = 0;
+        while (!layout.done()) {
             layout.step();
+            i++;
+            if (i > 20000) {
+                break;
+            }
+        }
+        System.out.println(i);
+
+        if (true) {
+            showGraph(circuit, layout, "result", false);
         }
 
         HashMap<Component, Point> pointMap = new HashMap<>();
 
         for (Component v : circuit.getComponents()) {
-            Point2D p = layout.transform(v.toString());
+            Point2D p = layout.transform(v);
             int x = ((int) p.getX() / 15) * 16;
             int y = ((int) p.getY() / 15) * 16;
             pointMap.put(v, new Point(x, y));
@@ -1264,16 +1392,20 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 
                     if (c.getA() == a) {
                         postA.put(c, comp.getPost(post));
+                        System.out.println("1: " + comp.getPost(post) + " c:" + c);
                     } else {
                         postB.put(c, comp.getPost(post));
+                        System.out.println("?: " + comp.getPost(post) + " c:" + c);
                     }
                 }
             } else {
                 for (Connection c : a.getConnections()) {
                     if (c.getA() == a) {
                         postA.put(c, p);
+                        System.out.println("2: " + p + " c:" + c);
                     } else {
                         postB.put(c, p);
+                        System.out.println("!: " + p + " c:" + c);
                     }
                 }
             }
@@ -1284,13 +1416,24 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
             Point p2 = postB.get(c);
 
             if (p1 == null || p2 == null) {
+                System.out.println(p1 + " c:" + c);
+//                if (p1 != null) {
+//                    sb.append(dumpString(p1.x, p1.y, p1.x + 32, p1.y, c.getSubComponent()));
+//                    sb.append('\n');
+//                } else if (p2 != null) {
+//                    sb.append(dumpString(p2.x, p2.y, p2.x + 32, p2.y, c.getSubComponent()));
+//                    sb.append('\n');
+//                } else {
+//                    System.out.println("ig: " + c);
+//                }
                 continue;
             }
 
-            sb.append(dumpString(p1.x, p1.y, p2.x, p2.y, "" + c.getSubComponent()));
+            sb.append(dumpString(p1.x, p1.y, p2.x, p2.y, c.getSubComponent()));
             sb.append('\n');
         }
 
+        System.out.println(sb.toString());
         return sb.toString();
     }
 

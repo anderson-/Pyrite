@@ -9,6 +9,7 @@ import com.falstad.circuit.CircuitElm;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 import s3f.pyrite.ui.components.MyLogicInputElm;
@@ -28,6 +29,7 @@ public class Circuit {
     private final Vector<Component> inputs;
     private final Vector<Component> outputs;
     private final Vector<Circuit> subCircuits;
+    private String status = "";
 
     public Circuit() {
         edges = new Vector<>();
@@ -38,7 +40,7 @@ public class Circuit {
     }
 
     public void addComponent(Component c) {
-        if (!nodes.contains(c)) {
+        if (c != null && !nodes.contains(c)) {
             nodes.add(c);
             for (Connection con : c.getConnections()) {
                 addConnection(con);
@@ -77,7 +79,7 @@ public class Circuit {
     }
 
     public void addConnection(Connection c) {
-        if (!edges.contains(c)) {
+        if (c != null && !edges.contains(c)) {
             edges.add(c);
         }
     }
@@ -141,14 +143,16 @@ public class Circuit {
             Object o = com.whut;
             if (o instanceof MyLogicInputElm) {
                 {
-//                    com.whut = null;
+                    com.setData(null);
+                    com.whut = null;
                     com.setName("?");
                     com.setCoupler(true);
                 }
                 inputs.add(com);
             } else if (o instanceof MyLogicOutputElm) {
                 {
-//                    com.whut = null;
+                    com.setData(null);
+                    com.whut = null;
                     com.setName("?");
                     com.setCoupler(true);
                 }
@@ -159,6 +163,11 @@ public class Circuit {
         Collections.sort(inputs, new Comparator<Component>() {
             @Override
             public int compare(Component o1, Component o2) {
+                if (o1.whut == null) {
+                    return 1;
+                } else if (o2.whut == null) {
+                    return -1;
+                }
                 return ((MyLogicInputElm) o1.whut).getName().compareTo(((MyLogicInputElm) o2.whut).getName());
             }
         });
@@ -166,6 +175,11 @@ public class Circuit {
         Collections.sort(outputs, new Comparator<Component>() {
             @Override
             public int compare(Component o1, Component o2) {
+                if (o1.whut == null) {
+                    return 1;
+                } else if (o2.whut == null) {
+                    return -1;
+                }
                 return ((MyLogicOutputElm) o1.whut).getName().compareTo(((MyLogicOutputElm) o2.whut).getName());
             }
         });
@@ -174,13 +188,19 @@ public class Circuit {
         all.addAll(inputs);
         all.addAll(outputs);
 
+        ArrayList<Object[]> relate = new ArrayList<>();
         for (Connection con : c.getConnections()) {
             int t = con.getTerminal(c);
             Component io = all.get(t);
-            if (io.getConnections().size() == 1){
+            if (io.getConnections().size() == 1) {
                 io = io.getConnections().get(0).getOtherComponent(io);
             }
             con.replace(c, io);
+            relate.add(new Object[]{io, con});
+        }
+
+        for (Object[] pair : relate) {
+            ((Component) pair[0]).addConnection((Connection) pair[1]);
         }
 
         c.setConsumed(true);
@@ -196,4 +216,28 @@ public class Circuit {
 
     }
 
+    public void clean() {
+        for (Iterator<Component> it = nodes.iterator(); it.hasNext();) {
+            Component c = it.next();
+            if (c.isConsumed()) {
+                it.remove();
+            }
+        }
+        for (Iterator<Connection> it = edges.iterator(); it.hasNext();) {
+            Connection c = it.next();
+            if (c.isConsumed()) {
+                it.remove();
+            }
+        }
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        if (status != null) {
+            this.status = status;
+        }
+    }
 }

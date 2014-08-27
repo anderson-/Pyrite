@@ -81,6 +81,7 @@ public class CircuitEditor implements Editor {
                 new Thread() {
                     public void run() {
                         Circuit cir = Editor3D.parseString(circuitSimulator.dumpCircuit());
+                        Editor3D.createCS(Editor3D.dumpCircuit(cir));
                     }
                 }.start();
             }
@@ -101,9 +102,12 @@ public class CircuitEditor implements Editor {
                     public void run() {
                         int d = Editor3D.DEBUG;
                         Editor3D.DEBUG = 0;
+                        Editor3D.SLEEP = (int) animTimestep.getValue();
                         Circuit cir = Editor3D.parseString(circuitSimulator.dumpCircuit(), true);
                         Editor3D.createCS(Editor3D.dumpCircuit(cir));
                         Editor3D.DEBUG = d;
+                        Editor3D.SLEEP = 0;
+                        animTimestep.setValue(0);
                     }
                 }.start();
             }

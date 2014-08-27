@@ -6,6 +6,7 @@
 package s3f.pyrite.core;
 
 import com.falstad.circuit.elements.WireElm;
+import java.util.Objects;
 
 /**
  *
@@ -120,7 +121,7 @@ public class Connection extends Fixable {
 
     @Override
     public String toString() {
-        return a.getUID() + " [" + terminalA + "]" + (subComponent.isEmpty() ? " -> " : " --(" + subComponent + ")-> ") + "[" + terminalB + "] " + b.getUID() + "." + whut + ".";
+        return (isConsumed() ? "!" : "") + a.getUID() + " [" + terminalA + "]" + (subComponent.isEmpty() ? " -> " : " --(" + subComponent + ")-> ") + "[" + terminalB + "] " + b.getUID() + "." + whut + "." + uid;
     }
 
     public Component getOtherComponent(Component c) {
@@ -155,11 +156,33 @@ public class Connection extends Fixable {
         }
     }
 
+    void debug(Component c) {
+        if (c.getUID().startsWith("10")) {
+            System.out.println(c.getConnections().size());
+        }
+    }
+
     public Connection shiftA(Component splitter) {
-        Connection con = splitter.createConnection(a);
+        System.out.println("-");
+        Connection con = splitter.getConnection(a);
+        if (con == null) {
+            con = splitter.createConnection(a);
+        }
+        System.out.println(splitter + " " + splitter.getConnections().size());
         con.setOtherTerminal(splitter, terminalA);
         terminalA = 0;
+
+        Connection x = b.getConnection(splitter);
+        if (x != null && x != this) {
+            x.setConsumed(true);
+        }
+        x = a.getConnection(splitter);
+        if (x != null && x != con) {
+            x.setConsumed(true);
+        }
+        a.removeConnection(this);
         a = splitter;
+        splitter.addConnection(this);
         return con;
     }
 
@@ -171,4 +194,46 @@ public class Connection extends Fixable {
         terminalA = terminalB;
         terminalB = i;
     }
+
+//    @Override
+//    public int hashCode() {
+//        int hash = 5;
+//        hash = 37 * hash + Objects.hashCode(this.whut);
+//        hash = 37 * hash + Objects.hashCode(this.a);
+//        hash = 37 * hash + Objects.hashCode(this.b);
+//        hash = 37 * hash + this.terminalA;
+//        hash = 37 * hash + this.terminalB;
+//        hash = 37 * hash + Objects.hashCode(this.subComponent);
+//        return hash;
+//    }
+//
+//    @Override
+//    public boolean equals(Object obj) {
+//        if (obj == null) {
+//            return false;
+//        }
+//        if (getClass() != obj.getClass()) {
+//            return false;
+//        }
+//        final Connection other = (Connection) obj;
+//        if (!Objects.equals(this.whut, other.whut)) {
+//            return false;
+//        }
+//        if (!Objects.equals(this.a, other.a)) {
+//            return false;
+//        }
+//        if (!Objects.equals(this.b, other.b)) {
+//            return false;
+//        }
+//        if (this.terminalA != other.terminalA) {
+//            return false;
+//        }
+//        if (this.terminalB != other.terminalB) {
+//            return false;
+//        }
+//        if (!Objects.equals(this.subComponent, other.subComponent)) {
+//            return false;
+//        }
+//        return true;
+//    }
 }
