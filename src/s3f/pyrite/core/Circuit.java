@@ -9,6 +9,7 @@ import com.falstad.circuit.CircuitElm;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -201,7 +202,7 @@ public class Circuit {
     public void clean() {
         for (Iterator<Component> it = nodes.iterator(); it.hasNext();) {
             Component c = it.next();
-            if (c.isConsumed()) {
+            if (c.isConsumed() || c.getConnections().isEmpty()) {
                 it.remove();
             }
         }
@@ -221,5 +222,49 @@ public class Circuit {
         if (status != null) {
             this.status = status;
         }
+    }
+
+    public Circuit copy() {
+        Circuit copy = new Circuit();
+
+        HashMap<Component, Component> map = new HashMap<>();
+        for (Component c : nodes) {
+            Component nc = c.copy();
+            map.put(c, nc);
+            copy.addComponent(nc);
+        }
+
+        for (Component c : nodes) {
+            for (Component s : c.getShortcuts()) {
+                c.addShortcut(map.get(s));
+            }
+        }
+
+        for (Connection c : edges) {
+            Connection nc = c.copy();
+            Component a = map.get(c.getA());
+            Component b = map.get(c.getB());
+            nc.setA(a);
+            nc.setB(b);
+            a.addConnection(nc);
+            b.addConnection(nc);
+            copy.addConnection(nc);
+        }
+
+        for (Component c : inputs) {
+            copy.inputs.add(map.get(c));
+        }
+
+        for (Component c : outputs) {
+            copy.outputs.add(map.get(c));
+        }
+
+        for (Circuit c : subCircuits) {
+            copy.subCircuits.add(c.copy());
+        }
+
+        copy.status = status;
+
+        return copy;
     }
 }

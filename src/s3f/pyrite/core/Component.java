@@ -163,4 +163,17 @@ public class Component extends Fixable {
             throw new IllegalArgumentException("this or c is not an contact");
         }
     }
+
+    public Component copy() {
+        Component nc = new Component();
+        nc.uid = uid;
+        nc.name = name;
+        nc.data = data;
+        if (pos != null) {
+            nc.pos = Arrays.copyOf(pos, 3);
+        }
+        nc.coupler = coupler;
+        nc.whut = whut;
+        return nc;
+    }
 }

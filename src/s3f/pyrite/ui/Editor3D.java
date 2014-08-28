@@ -396,7 +396,6 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 //                }
                 cs.analyzeCircuit();//nodeListSize
             }
-//            showGraph(cir, "www", true);
 
             /* place every component as an node */
             cir.setStatus("placing components as nodes");
@@ -588,35 +587,6 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                 return cir;
             }
 
-//            cir.setStatus("consuming redundant nodes");
-//            ArrayList<Component[]> consume = new ArrayList<>();
-//            for (Component a : cir.getComponents()) {
-//                if (a.isCoupler()) {
-//                    for (Connection c : a.getConnections()) {
-//                        Component b = c.getOtherComponent(a);
-//                        if (c.isShort() && (b.whut == null || (((CircuitElm) b.whut).getPostCount() == b.getConnections().size() && a.getConnections().size() == 2))) {
-//                            //if (c.isShort() && (b.whut == null || ((CircuitElm) b.whut).getPostCount() == 1)) {
-//                            consume.add(new Component[]{b, a});
-//                        }
-//                    }
-//                }
-//            }
-//            for (Component[] pair : consume) {
-//                Component a = pair[0];
-//                Component b = pair[1];
-//                if (!a.isConsumed() && !b.isConsumed()) {
-//                    cir.removeConnection(a.appendAndConsume(b));
-//                    cir.removeComponent(b);
-//                    sleep();
-//                }
-//            }
-//
-//            cir.setStatus("done 4");
-//            sleep();
-//            if (DEBUG == 4) {
-//                showGraph(cir, "4 - append and consume");
-//                return cir;
-//            }
             cir.setStatus("parsing and inserting sub-circuits");
             for (Map.Entry<CircuitElm, Component> entry : nodes.entrySet()) {
                 CircuitElm e = entry.getKey();
@@ -638,46 +608,35 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
             joinAll(cir, GroundElm.class);
             sleep();
 
-            cir.setStatus("done 5");
+            cir.setStatus("done 4");
             sleep();
-            if (DEBUG == 5) {
-                showGraph(cir, "5 - SubCircuits");
+            if (DEBUG == 4) {
+                showGraph(cir, "4 - SubCircuits");
                 return cir;
             }
 
             cir.setStatus("consuming redundant nodes");
-            //ArrayList<Component[]> consume = new ArrayList<>();
             boolean mod = true;
             while (mod) {
-                System.out.println(";");
                 mod = false;
-                int x, y = 0;
                 for (Component a : cir.getComponents()) {
-                    x = a.getConnections().size();
-                    if (!a.isConsumed() ) {
+                    if (!a.isConsumed()) {
                         ArrayList<Connection> newCons = new ArrayList<>();
                         for (Iterator<Connection> aConIt = a.getConnections().iterator(); aConIt.hasNext();) {
                             Connection c = aConIt.next();
-                            boolean ahh = (c.getSubComponent().isEmpty() || c.getSubComponent().startsWith("w")) && (c.whut == null || c.whut instanceof WireElm);
-                            if (ahh && !c.isConsumed()) {
+                            if (!c.isConsumed() && c.isShort()) {
                                 Component b = c.getOtherComponent(a);
-                                y = b.getConnections().size();
                                 if (!b.isConsumed() && b.isCoupler() && b.whut == null) {
-                                    {
-                                        System.out.println(".." + b);
-                                        b.removeConnection(c);
-//                                        aConIt.remove(); //a.removeConnection(c);
-                                        int ter = c.getTerminal(a);
-                                        c.softConsume();
-                                        for (Connection con : b.getConnections()) {
-                                            con.replace(b, a);
-                                            con.setTerminal(a, ter);
-                                            newCons.add(con);
-//                                            System.out.println("pre " + a + " " + con + " " + con.getOtherComponent(a));
-                                        }
-//                                        b.getConnections().clear();
-                                        b.setConsumed(true);
+                                    b.removeConnection(c);
+                                    int ter = c.getTerminal(a);
+                                    c.softConsume();
+                                    for (Connection con : b.getConnections()) {
+                                        con.replace(b, a);
+                                        con.setTerminal(a, ter);
+                                        newCons.add(con);
                                     }
+                                    b.setConsumed(true);
+                                    aConIt.remove();
                                     sleep();
                                     mod = true;
                                     break;
@@ -685,362 +644,22 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                             }
                         }
                         for (Connection con : newCons) {
-//                            System.out.println("add " + a + " " + con + " " + con.getOtherComponent(a));
                             a.addConnection(con);
-                        }
-                        if (mod) {
-//                            System.out.println(x + " " + y + " : " + (x + y) + " ==  " + a.getConnections().size());
                         }
                     }
                 }
             }
             cir.clean();
 
-//            for (Component[] pair : consume) {
-//                Component b = pair[0];
-//                Component a = pair[1];
-//                if (!b.isConsumed() && !a.isConsumed()) {
-//                    cir.removeConnection(b.appendAndConsume(a));
-//                    cir.removeComponent(a);
-//                    sleep();
-//                    System.out.println(a + " ++ " + b);
-//                } else {
-//                    System.out.println(a + " -- " + b);
-//                }
-//            }
-            cir.setStatus("done 4");
+            cir.setStatus("done 5");
             sleep();
-            if (DEBUG == 4) {
-                showGraph(cir, "4 - append and consume");
+            if (DEBUG == 5) {
+                showGraph(cir, "5 - append and consume");
                 return cir;
             }
         }
 
-        if (true) {
-            return cir;
-        }
-
-        HashMap<Point, Component> allNodes = new HashMap<>();
-        HashMap<CircuitElm, Integer> asd = new HashMap<>();
-        ArrayList<ArrayList<Component>> w = new ArrayList<>();
-
-        //create one node for each terminal of each component
-        for (int i = 0; i < cs.elmListSize(); i++) {
-            CircuitElm elm = cs.getElm(i);
-            ArrayList<Component> s = new ArrayList<>();
-            for (int j = 0; j < elm.getPostCount(); j++) {
-                Point p = elm.getPost(j);
-                if (!allNodes.containsKey(p)) {
-                    Component c = new Component();
-                    c.whut = elm;
-                    s.add(c);
-                    cir.addComponent(c);
-                    allNodes.put(p, c);
-                    if (!asd.containsKey(elm)) {
-                        asd.put(elm, j);
-                    }
-                } else {
-                    System.out.println("*");
-                }
-            }
-            w.add(s);
-        }
-        showGraph(cir, "1");
-        if (true) {
-            return cir;
-        }
-
-        //wire everthing up
-        for (int i = 0; i < cs.elmListSize(); i++) {
-            CircuitElm elm = cs.getElm(i);
-            for (int j = 0; j < elm.getPostCount(); j++) {
-                Point p = elm.getPost(j);
-                Component c = allNodes.get(p);
-                Component c2 = allNodes.get(elm.getPost(0));
-                if (c2 != null && c2 != c) {
-                    Connection con = c2.createConnection(c);
-                    if (elm.getPostCount() > 2) {
-                        con.setTerminalA(j);
-                    } else {
-                        con.setSubComponent(elm.dump());
-                        con.setTerminalA(0);
-                    }
-                    con.whut = elm;
-                    cir.addConnection(con);
-                }
-            }
-        }
-        showGraph(cir, "2");
-
-//        //defines what's node and what's edge
-//        ArrayList<CircuitElm> nodes = new ArrayList<>();
-//        ArrayList<CircuitElm> edges = new ArrayList<>();
-//        for (int i = 0; i < cs.elmListSize(); i++) {
-//            CircuitElm elm = cs.getElm(i);
-//            if (elm.getPostCount() == 2) {
-//                edges.add(elm);
-//            } else {
-//                nodes.add(elm);
-//            }
-//        }
-//
-//        //join all the terminal-nodes created before of each component into a single component 
-//        for (CircuitElm elm : nodes) {
-//            Component c = null;
-//            for (int i = 0; i < elm.getPostCount(); i++) {
-//                Component t = allNodes.get(elm.getPost(i));
-//                if (c == null) {
-//                    c = t;
-//                    System.out.println(">" + c);
-//                } else {
-//                    Connection con = t.getConnection(c);
-//                    if (con != null && con.whut == t.whut && c != t) {
-//                        cir.removeConnection(c.appendAndConsume(t));
-//                        cir.removeComponent(t);
-//                        System.out.println(t + " con");
-//                    } else {
-//                        System.out.println(t + " ig");
-//                    }
-//                }
-//            }
-////            c.whut = elm;
-////            c.setData(elm.dump());
-////            c.setName(elm.getClass().getSimpleName());
-//        }
-////        for (CircuitElm elm : nodes) {
-////            for (int i = 0; i < elm.getPostCount(); i++) {
-////                Component c = allNodes.get(elm.getPost(i));
-////                if (!c.isConsumed()) {
-////                    c.whut = elm;
-////                    c.setData(elm.dump());
-////                    c.setName(elm.getClass().getSimpleName());
-////                    break;
-////                }
-////            }
-//        }
-        for (Map.Entry<CircuitElm, Integer> e : asd.entrySet()) {
-            CircuitElm elm = e.getKey();
-            Component c = allNodes.get(elm.getPost(e.getValue()));
-            System.out.println(">" + c);
-            for (int i = 0; i < elm.getPostCount(); i++) {
-                Component t = allNodes.get(elm.getPost(i));
-                if (c != t) {
-                    Connection con = t.getConnection(c);
-                    if (con != null && con.whut == t.whut) {
-                        cir.removeConnection(c.appendAndConsume(t));
-                        cir.removeComponent(t);
-                        System.out.println(t + " con");
-                    } else {
-                        System.out.println(t + " ig");
-                    }
-                }
-            }
-        }
-
-        showGraph(cir, "3");
-
         return cir;
-
-//        System.out.println(allNodes.size());
-//
-//        for (int i = 0; i < cs.elmListSize(); i++) {
-//            CircuitElm elm = cs.getElm(i);
-//            for (int j = 0; j < elm.getPostCount(); j++) {
-//                Point p = elm.getPost(j);
-//                Component c = allNodes.get(p);
-//                for (int k = 0; k < ((CircuitElm) c.getData()).getPostCount(); k++) {
-//                    Component c2 = allNodes.get(elm.getPost(k));
-//                    if (c2 != null) {
-//                        Connection con = c2.createConnection(c);
-//                        cir.addConnection(con);
-//                    }
-//                }
-//            }
-//        }
-//        ArrayList<CircuitElm> nodes = new ArrayList<>();
-//        ArrayList<CircuitElm> edges = new ArrayList<>();
-//        for (int i = 0; i < cs.elmListSize(); i++) {
-//            CircuitElm elm = cs.getElm(i);
-//            if (elm.getPostCount() == 2) {
-//                edges.add(elm);
-//            } else {
-//                nodes.add(elm);
-//            }
-//        }
-//        for (ArrayList<Component> s : w) {
-//            Component c = null;
-//            for (Component t : s) {
-//                if (c == null) {
-//                    c = t;
-//                } else {
-//                    c.appendAndConsume(t);
-//                    cir.removeComponent(t);
-//                }
-//            }
-//            //c.setData(elm.dump());
-//        }
-//        for (CircuitElm elm : nodes) {
-//            Component c = null;
-//            for (int i = 0; i < elm.getPostCount(); i++) {
-//                Component t = allNodes.get(elm.getPost(i));
-//                if (c == null) {
-//                    c = t;
-//                } else {
-//                    c.appendAndConsume(t);
-//                    cir.removeComponent(t);
-//                }
-//            }
-//            c.setData(elm.dump());
-//        }
-//
-//        n:
-//        for (int i = 0; i < cs.nodeListSize(); i++) {
-//            CircuitNode cn = cs.getCircuitNode(i);
-//            if (cn.internal) {
-//                continue;
-//            }
-//
-//            for (CircuitNodeLink link : cn.links) {
-//                CircuitElm elm = link.elm;
-//                if (elm.getPostCount() != 2) {
-//                    continue n;
-//                }
-//            }
-//
-//            Component c = null;
-//            for (CircuitNodeLink link : cn.links) {
-//                CircuitElm elm = link.elm;
-//                Component t = s.get(w.indexOf(elm));
-//                if (t == null) {
-//                    System.out.println(elm);
-//                    continue;
-//                }
-//
-//                if (c == null) {
-//                    c = t;
-//                } else {
-//                    c.appendAndConsume(t);
-//                    cir.removeComponent(t);
-//                }
-//            }
-//        }
-//        n:
-//        for (int i = 0; i < cs.nodeListSize(); i++) {
-//            CircuitNode cn = cs.getCircuitNode(i);
-//            if (cn.internal) {
-//                continue;
-//            }
-//
-//            for (CircuitNodeLink link : cn.links) {
-//                CircuitElm elm = link.elm;
-//                if (elm.getPostCount() != 2){
-//                    continue n;
-//                }
-//            }
-//            
-//            for (CircuitNodeLink link : cn.links) {
-//                CircuitElm elm = link.elm;
-//                
-//            }
-//        }
-//        if (true) {
-//            return cir;
-//        }
-//
-//        HashMap<Point, Object[]> nodeComponents = new HashMap<>();
-//        for (CircuitElm elm : nodes) {
-//            Component c = new Component();
-//            c.setData(elm.dump());
-//            cir.addComponent(c);
-//            for (int i = 0; i < elm.getPostCount(); i++) {
-//                nodeComponents.put(elm.getPost(i), new Object[]{c, elm, i});
-//            }
-//        }
-//
-//        for (int i = 0; i < cs.nodeListSize(); i++) {
-//            CircuitNode circuitNode = cs.getCircuitNode(i);
-//            if (circuitNode.internal) {
-//                continue;
-//            }
-//            Component c = new Component();
-//            for (int j = 0; j < circuitNode.links.size(); j++) {
-//                CircuitElm elm = circuitNode.links.get(j).elm;
-//                if (elm.getPostCount() != 2) {
-//                    for (int k = 0; k < elm.getPostCount(); k++) {
-//                        Object[] v = nodeComponents.get(elm.getPost(k));
-//                        if (v != null) {
-//                            Component c2 = (Component) v[0];
-//                            String t2 = ((Integer) v[2]).toString();
-//                            Connection con = new Connection(c, "", c2, t2, "");
-//                            cir.addConnection(con);
-//                            cir.addComponent(c);
-//                        }
-//                    }
-//
-//                }
-//            }
-//        }
-//
-//        for (CircuitElm edge : edges) {
-//            Object[] v1 = nodeComponents.get(edge.getPost(0));
-//            Object[] v2 = nodeComponents.get(edge.getPost(1));
-//
-////            if (v1 == null) {
-////                ArrayList<CircuitElm> list = map.get(edge.getPost(0));
-////                if (list != null) {
-////                    for (CircuitElm elm : list) {
-////                        if (elm.getPostCount() != 2) {
-////                            Component c = new Component();
-////                            c.setData(elm.dump());
-////                            cir.addComponent(c);
-////                            for (int i = 0; i < elm.getPostCount(); i++) {
-////                                Point p = elm.getPost(i);
-////                                Object[] o = new Object[]{c, elm, i};
-////                                nodeComponents.put(p, o);
-////                                if (edge.getPost(0) == p) {
-////                                    v1 = o;
-////                                }
-////                            }
-////                        }
-////                    }
-////                }
-////            }
-////
-////            if (v2 == null) {
-////                ArrayList<CircuitElm> list = map.get(edge.getPost(1));
-////                if (list != null) {
-////                    for (CircuitElm elm : list) {
-////                        if (elm.getPostCount() != 2) {
-////                            Component c = new Component();
-////                            c.setData(elm.dump());
-////                            cir.addComponent(c);
-////                            for (int i = 0; i < elm.getPostCount(); i++) {
-////                                Point p = elm.getPost(i);
-////                                Object[] o = new Object[]{c, elm, i};
-////                                nodeComponents.put(p, o);
-////                                if (edge.getPost(0) == p) {
-////                                    v2 = o;
-////                                }
-////                            }
-////                        }
-////                    }
-////                }
-////            }
-//            if (v1 != null && v2 != null) {
-//                Component c1 = (Component) v1[0];
-//                Component c2 = (Component) v2[0];
-//
-//                String t1 = ((Integer) v1[2]).toString();
-//                String t2 = ((Integer) v1[2]).toString();
-//
-//                Connection c = new Connection(c1, t1, c2, t2, edge.dump());
-//                cir.addConnection(c);
-//            } else {
-//
-//            }
-//        }
-//
-//        return cir;
     }
 
     private static Circuit createCircuit(CircuitSimulator cs) {

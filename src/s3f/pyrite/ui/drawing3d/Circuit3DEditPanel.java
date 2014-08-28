@@ -52,7 +52,7 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
 
     public int pop = 5;
     public int gen = 5;
-    private String cir = "";
+    private Circuit orig = null;
 
     public Circuit3DEditPanel(Circuit circuit) {
         super(800, 600, true);
@@ -271,7 +271,7 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
 
     public void setCircuit(Circuit cir) {
         circuit = cir;
-        this.cir = Editor3D.dumpCircuit(circuit);
+        this.orig = circuit.copy();
         defaultDrawer.setCircuit(circuit);
         pickerBufferDrawer.setCircuit(circuit);
     }
@@ -409,7 +409,7 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
                 public void run() {
                     try {
                         int i = print("resetting...");
-                        setCircuit(Editor3D.parseString(cir));
+                        setCircuit(orig.copy());
                         print(i, "resetting... done.");
                     } catch (ThreadDeath e) {
                         print("break");

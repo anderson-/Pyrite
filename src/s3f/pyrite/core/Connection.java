@@ -120,7 +120,7 @@ public class Connection extends Fixable {
     }
 
     public boolean isShort() {
-        return subComponent.isEmpty() && (whut == null || whut instanceof WireElm);
+        return (subComponent.isEmpty() || subComponent.startsWith("w")) && (whut == null || whut instanceof WireElm);
     }
 
     @Override
@@ -193,45 +193,13 @@ public class Connection extends Fixable {
         terminalB = i;
     }
 
-//    @Override
-//    public int hashCode() {
-//        int hash = 5;
-//        hash = 37 * hash + Objects.hashCode(this.whut);
-//        hash = 37 * hash + Objects.hashCode(this.a);
-//        hash = 37 * hash + Objects.hashCode(this.b);
-//        hash = 37 * hash + this.terminalA;
-//        hash = 37 * hash + this.terminalB;
-//        hash = 37 * hash + Objects.hashCode(this.subComponent);
-//        return hash;
-//    }
-//
-//    @Override
-//    public boolean equals(Object obj) {
-//        if (obj == null) {
-//            return false;
-//        }
-//        if (getClass() != obj.getClass()) {
-//            return false;
-//        }
-//        final Connection other = (Connection) obj;
-//        if (!Objects.equals(this.whut, other.whut)) {
-//            return false;
-//        }
-//        if (!Objects.equals(this.a, other.a)) {
-//            return false;
-//        }
-//        if (!Objects.equals(this.b, other.b)) {
-//            return false;
-//        }
-//        if (this.terminalA != other.terminalA) {
-//            return false;
-//        }
-//        if (this.terminalB != other.terminalB) {
-//            return false;
-//        }
-//        if (!Objects.equals(this.subComponent, other.subComponent)) {
-//            return false;
-//        }
-//        return true;
-//    }
+    public Connection copy() {
+        Connection nc = new Connection(subComponent);
+        nc.setTerminalA(terminalA);
+        nc.setTerminalB(terminalB);
+        nc.uid = uid;
+        nc.satisfied = satisfied;
+        nc.whut = whut;
+        return nc;
+    }
 }

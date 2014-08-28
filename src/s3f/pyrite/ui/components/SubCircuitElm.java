@@ -211,6 +211,7 @@ public class SubCircuitElm extends ChipElm {
                 if (circuitModule.getName().equals(name)) {
                     circuit = circuitModule.getText();
                     CircuitSimulator cs = Editor3D.createCS2(circuit);
+                    cs.setStopped(false);
                     setInternalCircuitSimulator(cs);
                     setupPins();
                     allocNodes();
