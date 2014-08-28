@@ -199,7 +199,7 @@ public class DefaultGridFittingTool implements GridFittingTool {
                 }
             }
         }
-        System.out.println("p: " + (System.currentTimeMillis() - t));
+//        System.out.println("p: " + (System.currentTimeMillis() - t));
         if (parameters.shuffleNg) {
             Collections.shuffle(list, rand);
         }
@@ -280,7 +280,7 @@ public class DefaultGridFittingTool implements GridFittingTool {
             validShortcuts.clear();//TEMP
             long t = System.currentTimeMillis();
             d.computePaths(a.getPos(), b.getPos(), grid, circuit.getComponents(), validShortcutsPos);
-            System.out.println("d: " + (System.currentTimeMillis() - t));
+//            System.out.println("d: " + (System.currentTimeMillis() - t));
             validShortcuts.add(b);
             List<int[]> directions = null;
 //            System.out.println("validShortcuts: " + validShortcuts.size());

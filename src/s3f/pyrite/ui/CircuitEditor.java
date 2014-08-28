@@ -117,6 +117,18 @@ public class CircuitEditor implements Editor {
                 }.start();
             }
         });
+        JButton COPY = new JButton("copy");
+        COPY.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                new Thread() {
+                    public void run() {
+                        Circuit cir = Editor3D.parseString(circuitSimulator.dumpCircuit());
+                        C = cir.copy();
+                    }
+                }.start();
+            }
+        });
         JButton run = new JButton("Run");
         run.addActionListener(new ActionListener() {
             @Override
@@ -134,6 +146,7 @@ public class CircuitEditor implements Editor {
         window.getContentPane().add(animTimestep);
         window.getContentPane().add(convertAndAnimate);
         window.getContentPane().add(run);
+        window.getContentPane().add(COPY);
 //        window.pack();
 //        window.setSize(new Dimension(600, 600));
         TabProperty.put(data, "Editor", null, "Editor de código", window);

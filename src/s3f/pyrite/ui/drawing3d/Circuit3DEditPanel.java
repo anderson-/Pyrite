@@ -10,6 +10,7 @@ import com.falstad.circuit.elements.LogicOutputElm;
 import com.falstad.circuit.elements.SwitchElm;
 import com.falstad.circuit.elements.WireElm;
 import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.opengl.math.geom.AABBox;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -32,12 +33,14 @@ import s3f.pyrite.core.Connection;
 import s3f.pyrite.core.DefaultGridFittingTool;
 import s3f.pyrite.core.Grid;
 import s3f.pyrite.ui.Editor3D;
+import s3f.util.cyzx.HistoryManager;
+import s3f.util.cyzx.Undoable;
 
 /**
  *
  * @author antunes
  */
-public class Circuit3DEditPanel extends DrawingPanel3D {
+public class Circuit3DEditPanel extends DrawingPanel3D implements Undoable<Circuit> {
 
     private CircuitDrawingTool defaultDrawer;
     private ObjectPicker<Component> picker;
@@ -49,6 +52,9 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
     private Thread cubThread = null;
     private ArrayList<String> messages = new ArrayList<>();
     private Thread placeThread = null;
+
+    private HistoryManager<Circuit> hm = new HistoryManager<>(this);
+    private static final DefaultGridFittingTool defaultGridFittingTool = new s3f.pyrite.core.DefaultGridFittingTool();
 
     public int pop = 5;
     public int gen = 5;
@@ -366,15 +372,15 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
         pickerBuffer.scale(scale);
         pickerBufferDrawer.drawAll(pickerBuffer);
         pickerBuffer.endDraw();
-        //picker.select(applet.mouseX, applet.mouseY);
-        {
-            Component c = picker.pick(applet.mouseX, applet.mouseY);
-            if (c != null && c.whut instanceof SwitchElm) {
-                SwitchElm se = (SwitchElm) c.whut;
-                se.toggle();
-                se.getCS().needAnalyze();
-            }
-        }
+        picker.select(applet.mouseX, applet.mouseY);
+//        if (interactiveSimulation) {
+//            Component c = picker.pick(applet.mouseX, applet.mouseY);
+//            if (c != null && c.whut instanceof SwitchElm) {
+//                SwitchElm se = (SwitchElm) c.whut;
+//                se.toggle();
+//                se.getCS().needAnalyze();
+//            }
+//        }
 
     }
 
@@ -386,17 +392,21 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
             }
             switch (applet.keyCode) {
                 case KeyEvent.VK_J:
+                    hm.saveState();
                     c.getPos()[0] += left().x;
                     c.getPos()[1] += left().y;
                     break;
                 case KeyEvent.VK_L:
+                    hm.saveState();
                     c.getPos()[0] += right().x;
                     c.getPos()[1] += right().y;
                     break;
                 case KeyEvent.VK_I:
+                    hm.saveState();
                     c.getPos()[2]++;
                     break;
                 case KeyEvent.VK_K:
+                    hm.saveState();
                     c.getPos()[2]--;
                     break;
             }
@@ -409,6 +419,7 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
                 public void run() {
                     try {
                         int i = print("resetting...");
+                        hm.saveState();
                         setCircuit(orig.copy());
                         print(i, "resetting... done.");
                     } catch (ThreadDeath e) {
@@ -423,7 +434,7 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
                     public void run() {
                         try {
                             int i = print("cubeficating...");
-                            DefaultGridFittingTool defaultGridFittingTool = new s3f.pyrite.core.DefaultGridFittingTool();
+                            hm.saveState();
                             defaultGridFittingTool.fit(circuit, grid);
                             print(i, "cubeficating... done.");
                         } catch (ThreadDeath e) {
@@ -452,6 +463,10 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
 //                    }
 //                }
 //            }.start();
+        } else if (applet.keyCode == KeyEvent.VK_Z) {
+            hm.undo();
+        } else if (applet.keyCode == KeyEvent.VK_Y) {
+            hm.redo();
         } else if (applet.keyCode == KeyEvent.VK_G) {
 //            circuit.show2D();
         } else if (applet.keyCode == KeyEvent.VK_X) {
@@ -478,6 +493,10 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
                 if (components != null && !components.isEmpty()) {
                     gnd = components.get((int) (components.size() * Math.random()));
                 }
+            }
+
+            if (gnd != null || vcc != null) {
+                hm.saveState();
             }
 
             if (gnd != null) {
@@ -789,5 +808,15 @@ public class Circuit3DEditPanel extends DrawingPanel3D {
         }
         g3d.endShape();
         g3d.popMatrix();
+    }
+
+    @Override
+    public Circuit copy() {
+        return circuit.copy();
+    }
+
+    @Override
+    public void setState(Circuit state) {
+        setCircuit(state);
     }
 }

@@ -161,12 +161,10 @@ public class Connection extends Fixable {
     }
 
     public Connection shiftA(Component splitter) {
-        System.out.println("-");
         Connection con = splitter.getConnection(a);
         if (con == null) {
             con = splitter.createConnection(a);
         }
-        System.out.println(splitter + " " + splitter.getConnections().size());
         con.setOtherTerminal(splitter, terminalA);
         terminalA = 0;
 

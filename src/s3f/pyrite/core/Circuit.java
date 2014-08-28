@@ -236,7 +236,7 @@ public class Circuit {
 
         for (Component c : nodes) {
             for (Component s : c.getShortcuts()) {
-                c.addShortcut(map.get(s));
+                map.get(c).addShortcut(map.get(s));
             }
         }
 
@@ -259,9 +259,9 @@ public class Circuit {
             copy.outputs.add(map.get(c));
         }
 
-        for (Circuit c : subCircuits) {
-            copy.subCircuits.add(c.copy());
-        }
+//        for (Circuit c : subCircuits) {
+//            copy.subCircuits.add(c.copy()); //error on copying components no loger there
+//        }
 
         copy.status = status;
 
