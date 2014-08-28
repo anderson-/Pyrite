@@ -142,20 +142,8 @@ public class Circuit {
         for (Component com : sub.nodes) {
             Object o = com.whut;
             if (o instanceof MyLogicInputElm) {
-                {
-                    com.setData(null);
-                    com.whut = null;
-                    com.setName("?");
-                    com.setCoupler(true);
-                }
                 inputs.add(com);
             } else if (o instanceof MyLogicOutputElm) {
-                {
-                    com.setData(null);
-                    com.whut = null;
-                    com.setName("?");
-                    com.setCoupler(true);
-                }
                 outputs.add(com);
             }
         }
@@ -163,11 +151,6 @@ public class Circuit {
         Collections.sort(inputs, new Comparator<Component>() {
             @Override
             public int compare(Component o1, Component o2) {
-                if (o1.whut == null) {
-                    return 1;
-                } else if (o2.whut == null) {
-                    return -1;
-                }
                 return ((MyLogicInputElm) o1.whut).getName().compareTo(((MyLogicInputElm) o2.whut).getName());
             }
         });
@@ -175,11 +158,6 @@ public class Circuit {
         Collections.sort(outputs, new Comparator<Component>() {
             @Override
             public int compare(Component o1, Component o2) {
-                if (o1.whut == null) {
-                    return 1;
-                } else if (o2.whut == null) {
-                    return -1;
-                }
                 return ((MyLogicOutputElm) o1.whut).getName().compareTo(((MyLogicOutputElm) o2.whut).getName());
             }
         });
@@ -192,15 +170,19 @@ public class Circuit {
         for (Connection con : c.getConnections()) {
             int t = con.getTerminal(c);
             Component io = all.get(t);
-            if (io.getConnections().size() == 1) {
-                io = io.getConnections().get(0).getOtherComponent(io);
-            }
             con.replace(c, io);
             relate.add(new Object[]{io, con});
         }
 
         for (Object[] pair : relate) {
             ((Component) pair[0]).addConnection((Connection) pair[1]);
+        }
+
+        for (Component com : all) {
+            com.setName("?");
+            com.setCoupler(true);
+            com.whut = null;
+            com.setData(null);
         }
 
         c.setConsumed(true);

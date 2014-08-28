@@ -43,6 +43,8 @@ public class CircuitEditor implements Editor {
     private final CircuitSimulator circuitSimulator;
     private TextFile circuit;
 
+    public Circuit C = null;
+    
     public CircuitEditor() {
         data = new Data("editorTab", "s3f.core.code", "Editor Tab");
         JApplet window = new JApplet();
@@ -70,6 +72,7 @@ public class CircuitEditor implements Editor {
                 new Thread() {
                     public void run() {
                         Circuit cir = Editor3D.parseString(circuitSimulator.dumpCircuit());
+                        C = cir;
                     }
                 }.start();
             }
@@ -81,6 +84,7 @@ public class CircuitEditor implements Editor {
                 new Thread() {
                     public void run() {
                         Circuit cir = Editor3D.parseString(circuitSimulator.dumpCircuit());
+                        C = cir;
                         Editor3D.createCS(Editor3D.dumpCircuit(cir));
                     }
                 }.start();
@@ -104,10 +108,22 @@ public class CircuitEditor implements Editor {
                         Editor3D.DEBUG = 0;
                         Editor3D.SLEEP = (int) animTimestep.getValue();
                         Circuit cir = Editor3D.parseString(circuitSimulator.dumpCircuit(), true);
+                        C = cir;
                         Editor3D.createCS(Editor3D.dumpCircuit(cir));
                         Editor3D.DEBUG = d;
                         Editor3D.SLEEP = 0;
                         animTimestep.setValue(0);
+                    }
+                }.start();
+            }
+        });
+        JButton run = new JButton("Run");
+        run.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                new Thread() {
+                    public void run() {
+                        Editor3D.createCS(Editor3D.dumpCircuit(C));
                     }
                 }.start();
             }
@@ -117,6 +133,7 @@ public class CircuitEditor implements Editor {
         window.getContentPane().add(convertAndRunButton);
         window.getContentPane().add(animTimestep);
         window.getContentPane().add(convertAndAnimate);
+        window.getContentPane().add(run);
 //        window.pack();
 //        window.setSize(new Dimension(600, 600));
         TabProperty.put(data, "Editor", null, "Editor de código", window);

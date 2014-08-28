@@ -11,7 +11,7 @@ package s3f.pyrite.core;
  */
 public class Fixable {
 
-    private boolean consumed; //simplification algorithm
+    boolean consumed; //simplification algorithm
     private boolean fixed; //circuit reset
 
     public boolean isConsumed() {

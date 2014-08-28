@@ -63,7 +63,7 @@ import s3f.pyrite.ui.drawing3d.Circuit3DEditPanel;
  */
 public class Editor3D extends DockingWindowAdapter implements Editor {
 
-    static int DEBUG = 5;
+    static int DEBUG = 6;
     static boolean CLOSE = false;
 
 //    private static final ImageIcon ICON = new ImageIcon(ModularCircuitEditor.class.getResource("/resources/icons/fugue/block.png"));
@@ -130,7 +130,9 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         window.setJMenuBar(cs.getGUI().createGUI(true));
         cs.posInit();
         cs.analyzeCircuit();
-        cs.updateCircuit(null);
+        for (int i = 0; i < 30; i++) {
+            cs.updateCircuit(null);
+        }
         return cs;
     }
 
@@ -149,8 +151,9 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         window.setJMenuBar(cs.getGUI().createGUI(true));
         cs.posInit();
         cs.analyzeCircuit();
-        cs.updateCircuit(null);
-        cs.updateCircuit(null);
+        for (int i = 0; i < 30; i++) {
+            cs.updateCircuit(null);
+        }
         JFrame f = new JFrame();
         f.setContentPane(window);
         f.setSize(new Dimension(400, 400));
@@ -585,36 +588,35 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                 return cir;
             }
 
-            cir.setStatus("consuming redundant nodes");
-            ArrayList<Component[]> consume = new ArrayList<>();
-            for (Component a : cir.getComponents()) {
-                if (a.isCoupler()) {
-                    for (Connection c : a.getConnections()) {
-                        Component b = c.getOtherComponent(a);
-                        if (c.isShort() && (b.whut == null || (((CircuitElm) b.whut).getPostCount() == b.getConnections().size() && a.getConnections().size() == 2))) {
-                            //if (c.isShort() && (b.whut == null || ((CircuitElm) b.whut).getPostCount() == 1)) {
-                            consume.add(new Component[]{b, a});
-                        }
-                    }
-                }
-            }
-            for (Component[] pair : consume) {
-                Component a = pair[0];
-                Component b = pair[1];
-                if (!a.isConsumed() && !b.isConsumed()) {
-                    cir.removeConnection(a.appendAndConsume(b));
-                    cir.removeComponent(b);
-                    sleep();
-                }
-            }
-
-            cir.setStatus("done 4");
-            sleep();
-            if (DEBUG == 4) {
-                showGraph(cir, "4 - append and consume");
-                return cir;
-            }
-
+//            cir.setStatus("consuming redundant nodes");
+//            ArrayList<Component[]> consume = new ArrayList<>();
+//            for (Component a : cir.getComponents()) {
+//                if (a.isCoupler()) {
+//                    for (Connection c : a.getConnections()) {
+//                        Component b = c.getOtherComponent(a);
+//                        if (c.isShort() && (b.whut == null || (((CircuitElm) b.whut).getPostCount() == b.getConnections().size() && a.getConnections().size() == 2))) {
+//                            //if (c.isShort() && (b.whut == null || ((CircuitElm) b.whut).getPostCount() == 1)) {
+//                            consume.add(new Component[]{b, a});
+//                        }
+//                    }
+//                }
+//            }
+//            for (Component[] pair : consume) {
+//                Component a = pair[0];
+//                Component b = pair[1];
+//                if (!a.isConsumed() && !b.isConsumed()) {
+//                    cir.removeConnection(a.appendAndConsume(b));
+//                    cir.removeComponent(b);
+//                    sleep();
+//                }
+//            }
+//
+//            cir.setStatus("done 4");
+//            sleep();
+//            if (DEBUG == 4) {
+//                showGraph(cir, "4 - append and consume");
+//                return cir;
+//            }
             cir.setStatus("parsing and inserting sub-circuits");
             for (Map.Entry<CircuitElm, Component> entry : nodes.entrySet()) {
                 CircuitElm e = entry.getKey();
@@ -640,6 +642,76 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
             sleep();
             if (DEBUG == 5) {
                 showGraph(cir, "5 - SubCircuits");
+                return cir;
+            }
+
+            cir.setStatus("consuming redundant nodes");
+            //ArrayList<Component[]> consume = new ArrayList<>();
+            boolean mod = true;
+            while (mod) {
+                System.out.println(";");
+                mod = false;
+                int x, y = 0;
+                for (Component a : cir.getComponents()) {
+                    x = a.getConnections().size();
+                    if (!a.isConsumed() ) {
+                        ArrayList<Connection> newCons = new ArrayList<>();
+                        for (Iterator<Connection> aConIt = a.getConnections().iterator(); aConIt.hasNext();) {
+                            Connection c = aConIt.next();
+                            boolean ahh = (c.getSubComponent().isEmpty() || c.getSubComponent().startsWith("w")) && (c.whut == null || c.whut instanceof WireElm);
+                            if (ahh && !c.isConsumed()) {
+                                Component b = c.getOtherComponent(a);
+                                y = b.getConnections().size();
+                                if (!b.isConsumed() && b.isCoupler() && b.whut == null) {
+                                    {
+                                        System.out.println(".." + b);
+                                        b.removeConnection(c);
+//                                        aConIt.remove(); //a.removeConnection(c);
+                                        int ter = c.getTerminal(a);
+                                        c.softConsume();
+                                        for (Connection con : b.getConnections()) {
+                                            con.replace(b, a);
+                                            con.setTerminal(a, ter);
+                                            newCons.add(con);
+//                                            System.out.println("pre " + a + " " + con + " " + con.getOtherComponent(a));
+                                        }
+//                                        b.getConnections().clear();
+                                        b.setConsumed(true);
+                                    }
+                                    sleep();
+                                    mod = true;
+                                    break;
+                                }
+                            }
+                        }
+                        for (Connection con : newCons) {
+//                            System.out.println("add " + a + " " + con + " " + con.getOtherComponent(a));
+                            a.addConnection(con);
+                        }
+                        if (mod) {
+//                            System.out.println(x + " " + y + " : " + (x + y) + " ==  " + a.getConnections().size());
+                        }
+                    }
+                }
+            }
+            cir.clean();
+
+//            for (Component[] pair : consume) {
+//                Component b = pair[0];
+//                Component a = pair[1];
+//                if (!b.isConsumed() && !a.isConsumed()) {
+//                    cir.removeConnection(b.appendAndConsume(a));
+//                    cir.removeComponent(a);
+//                    sleep();
+//                    System.out.println(a + " ++ " + b);
+//                } else {
+//                    System.out.println(a + " -- " + b);
+//                }
+//            }
+            cir.setStatus("done 4");
+            sleep();
+            if (DEBUG == 4) {
+                showGraph(cir, "4 - append and consume");
                 return cir;
             }
         }
@@ -1115,7 +1187,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
     }
 
     public static Circuit parseString(String text) {
-        return createCircuit2(createCS(text));
+        return createCircuit2(createDummyCS(text));
     }
 
     public static Graph<Component, Connection> createGraph(Circuit circuit) {
@@ -1341,7 +1413,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 
     private static String dumpCircuit(Circuit circuit, CircuitSimulator cs) {
         int w, h;
-        w = h = 700;
+        w = h = 900;
 
         StringBuilder sb = new StringBuilder();
 
@@ -1368,8 +1440,8 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 
         for (Component v : circuit.getComponents()) {
             Point2D p = layout.transform(v);
-            int x = ((int) p.getX() / 15) * 16;
-            int y = ((int) p.getY() / 15) * 16;
+            int x = ((int) p.getX() / 1) * 1;
+            int y = ((int) p.getY() / 1) * 1;
             pointMap.put(v, new Point(x, y));
         }
 
@@ -1392,20 +1464,16 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 
                     if (c.getA() == a) {
                         postA.put(c, comp.getPost(post));
-                        System.out.println("1: " + comp.getPost(post) + " c:" + c);
                     } else {
                         postB.put(c, comp.getPost(post));
-                        System.out.println("?: " + comp.getPost(post) + " c:" + c);
                     }
                 }
             } else {
                 for (Connection c : a.getConnections()) {
                     if (c.getA() == a) {
                         postA.put(c, p);
-                        System.out.println("2: " + p + " c:" + c);
                     } else {
                         postB.put(c, p);
-                        System.out.println("!: " + p + " c:" + c);
                     }
                 }
             }
@@ -1416,16 +1484,6 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
             Point p2 = postB.get(c);
 
             if (p1 == null || p2 == null) {
-                System.out.println(p1 + " c:" + c);
-//                if (p1 != null) {
-//                    sb.append(dumpString(p1.x, p1.y, p1.x + 32, p1.y, c.getSubComponent()));
-//                    sb.append('\n');
-//                } else if (p2 != null) {
-//                    sb.append(dumpString(p2.x, p2.y, p2.x + 32, p2.y, c.getSubComponent()));
-//                    sb.append('\n');
-//                } else {
-//                    System.out.println("ig: " + c);
-//                }
                 continue;
             }
 

@@ -99,6 +99,10 @@ public class Connection extends Fixable {
         }
     }
 
+    public void softConsume() {
+        super.setConsumed(true);
+    }
+
     public String getSubComponent() {
         return subComponent;
     }
@@ -140,7 +144,7 @@ public class Connection extends Fixable {
         }
     }
 
-    void setTerminal(Component c, int terminal) {
+    public void setTerminal(Component c, int terminal) {
         if (a == c) {
             setTerminalA(terminal);
         } else {
@@ -148,17 +152,11 @@ public class Connection extends Fixable {
         }
     }
 
-    void setOtherTerminal(Component c, int terminal) {
+    public void setOtherTerminal(Component c, int terminal) {
         if (a != c) {
             setTerminalA(terminal);
         } else {
             setTerminalB(terminal);
-        }
-    }
-
-    void debug(Component c) {
-        if (c.getUID().startsWith("10")) {
-            System.out.println(c.getConnections().size());
         }
     }
 
