@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Vector;
 import s3f.pyrite.ui.components.MyLogicInputElm;
 import s3f.pyrite.ui.components.MyLogicOutputElm;
+import s3f.util.toml.impl.Toml;
 
 /**
  *
@@ -115,11 +116,44 @@ public class Circuit {
     }
 
     public String save() {
-        return "";
+        POJO p = new POJO();
+        p.pos = new ArrayList<>();
+        p.com = new ArrayList<>();
+        int i = 0;
+        for (Component c : nodes) {
+            ArrayList<Long> pos = new ArrayList<>();
+            p.com.add(i);
+            if (c.getPos() != null) {
+                pos.add(new Long(c.getPos()[0]));
+                pos.add(new Long(c.getPos()[1]));
+                pos.add(new Long(c.getPos()[2]));
+            }
+            p.pos.add(pos);
+            i++;
+        }
+        return Toml.serialize("circuit", p);
     }
 
-    public void load(String text) {
-
+    public void load(String str) {
+        if (str.trim().isEmpty()) {
+            return;
+        }
+        System.out.println("LOADING:" + str);
+        Toml parser = Toml.parse(str);
+        POJO p = parser.getAs("circuit", POJO.class);
+        int i = 0;
+        for (Component c : nodes) {
+            if (p.pos.get(i).size() == 3) {
+                int[] pos = new int[3];
+                pos[0] = p.pos.get(i).get(0).intValue();
+                pos[1] = p.pos.get(i).get(1).intValue();
+                pos[2] = p.pos.get(i).get(2).intValue();
+                c.setPos(pos);
+            } else {
+                c.setPos(null);
+            }
+            i++;
+        }
     }
 
     public int getDisconectedConnections() {
@@ -262,9 +296,14 @@ public class Circuit {
 //        for (Circuit c : subCircuits) {
 //            copy.subCircuits.add(c.copy()); //error on copying components no loger there
 //        }
-
         copy.status = status;
 
         return copy;
+    }
+
+    public static class POJO {
+
+        public List<List<Long>> pos;
+        public List<Integer> com;
     }
 }

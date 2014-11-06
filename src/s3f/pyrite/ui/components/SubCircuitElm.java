@@ -23,7 +23,7 @@ import s3f.core.plugin.SimulableElement;
 import s3f.core.project.Element;
 import s3f.core.project.Project;
 import s3f.pyrite.types.CircuitFile;
-import s3f.pyrite.ui.Editor3D;
+import s3f.pyrite.ui.VolimetricCircuitEditor;
 
 /**
  *
@@ -210,16 +210,16 @@ public class SubCircuitElm extends ChipElm {
                 CircuitFile circuitModule = (CircuitFile) e;
                 if (circuitModule.getName().equals(name)) {
                     circuit = circuitModule.getText();
-                    CircuitSimulator cs = Editor3D.createCS2(circuit);
+                    CircuitSimulator cs = VolimetricCircuitEditor.createCS2(circuit);
                     cs.setStopped(false);
                     setInternalCircuitSimulator(cs);
                     setupPins();
                     allocNodes();
                     setPoints();
-                    try {
-                        Thread.sleep(300);
-                    } catch (InterruptedException ex) {
-                    }
+//                    try {
+//                        Thread.sleep(300);
+//                    } catch (InterruptedException ex) {
+//                    }
                     break;
                 }
             }

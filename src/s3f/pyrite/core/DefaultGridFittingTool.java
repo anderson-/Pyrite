@@ -9,21 +9,18 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
+import processing.core.PConstants;
+import processing.opengl.PGraphics3D;
 import s3f.pyrite.core.intervaltree.HDIntervalTree;
 import s3f.pyrite.ui.ConfigurationTab;
 import s3f.pyrite.ui.ConfigurationTab.Checkbox;
-import s3f.pyrite.ui.ConfigurationTab.CustomComponent;
-import s3f.pyrite.ui.ConfigurationTab.Panel;
-import s3f.pyrite.ui.Editor3D;
+import s3f.pyrite.ui.ConfigurationTab.Spinner;
 
 /**
  *
@@ -33,52 +30,44 @@ public class DefaultGridFittingTool implements GridFittingTool {
 
     private static class Parameters {
 
-        public Parameters() {
-//            new Thread() {
-//                @Override
-//                public void run() {
-//                    while (true) {
-//                        System.out.println(optimize);
-//                        try {
-//                            Thread.sleep(100);
-//                        } catch (InterruptedException ex) {
-//                            ex.printStackTrace();
-//                        }
-//                    }
-//                }
-//            }.start();
-        }
-
-        private static class SubP0 {
-
-            @Checkbox(name = "test1")
-            public boolean t1 = true;
-
-            @Checkbox(name = "asdasd")
-            public boolean t2 = true;
-        }
-
-        @Checkbox(name = "optimize")
-        public boolean optimize2 = true;
-
-        @Panel(name = "caixa pra p0")
-        public SubP0 p0 = new SubP0();
-
-        @Panel(name = "p1")
-        public SubP0 p1 = new SubP0();
-
-        @CustomComponent(method = "buildAsd")
-        public String asd = "Testasdasdasdse UHUL!";
-
-        private JComponent buildAsd() {
-            return new JLabel(asd);
-        }
-
+//        private static class SubP0 {
+//
+//            @Checkbox(name = "test1")
+//            public boolean t1 = true;
+//
+//            @Checkbox(name = "asdasd")
+//            public boolean t2 = true;
+//        }
+//
+//        @Checkbox(name = "optimize")
+//        public boolean optimize2 = true;
+//
+//        @Panel(name = "caixa pra p0")
+//        public SubP0 p0 = new SubP0();
+//
+//        @Panel(name = "p1")
+//        public SubP0 p1 = new SubP0();
+//
+//        @CustomComponent(method = "buildAsd")
+//        public String asd = "Testasdasdasdse UHUL!";
+//
+//        private JComponent buildAsd() {
+//            return new JLabel(asd);
+//        }
         //---x---
+        @Spinner(name = "Timestep:", max = 10000, min = 0, step = 100)
         public int sleep = 0;
-        public boolean chain = true;
+
+        @Spinner(name = "Random seed:", max = 1000, min = 0, step = 1)
         public long seed = 0;
+
+        @Checkbox(name = "Chain")
+        public boolean chain = true;
+
+        @Checkbox(name = "Shuffle neighborhood")
         public boolean shuffleNg = true;
+
+        @Checkbox(name = "Optimize")
         public boolean optimize = false;
 
     }
@@ -86,15 +75,26 @@ public class DefaultGridFittingTool implements GridFittingTool {
     private final Parameters parameters;
     public static final Random rand = new Random(0);
 
+    private Grid grid = Grid.SIMPLE;
+
     public static void main(String[] args) {
         new ConfigurationTab(new Parameters());
     }
 
     public DefaultGridFittingTool() {
         parameters = new Parameters();
+        new ConfigurationTab(parameters);
+    }
+
+    public void setGrid(Grid grid) {
+        this.grid = grid;
     }
 
     @Override
+    public void fit(Circuit circuit) {
+        fit(circuit, grid);
+    }
+
     public void fit(Circuit circuit, Grid grid) {
         if (parameters.shuffleNg) {
             rand.setSeed(parameters.seed);
@@ -323,7 +323,6 @@ public class DefaultGridFittingTool implements GridFittingTool {
 //                (byte) ((i << 16) >>> 24), (byte) ((i << 24) >>> 24)
 //            };
 //        }
-
         private static int toInt(int... bi) {
             return /*bi[3] & 0xFF |*/ (bi[2] & 0xFF) << 8
                     | (bi[1] & 0xFF) << 16 | (bi[0] & 0xFF) << 24;
@@ -354,10 +353,9 @@ public class DefaultGridFittingTool implements GridFittingTool {
 //            int z = i & 0xFF;
 //            return new int[]{x, y, z};
 //        }
-        public static void main(String[] args) {
-            System.out.println(Arrays.toString(toVet(toInt(1, 2, -3))));
-        }
-
+//        public static void main(String[] args) {
+//            System.out.println(Arrays.toString(toVet(toInt(1, 2, -3))));
+//        }
         Map<Integer, Integer> distances = new HashMap<>();
         Map<Integer, Integer> prev = new HashMap<>();
 
@@ -446,4 +444,30 @@ public class DefaultGridFittingTool implements GridFittingTool {
             return path;
         }
     }
+
+    public void draw(PGraphics3D g3d) {
+        if (grid instanceof Grid.FiniteGrid) {
+            Grid.FiniteGrid finiteGrid = (Grid.FiniteGrid) grid;
+            for (int[] b : finiteGrid.getBoundaries()) {
+                int x1 = b[0];
+                int y1 = b[1];
+                int z1 = b[2];
+                int x2 = b[3];
+                int y2 = b[4];
+                int z2 = b[5];
+                g3d.pushMatrix();
+                g3d.pushStyle();
+                //g3d.fill(0, 0, 255, 100);
+                g3d.noFill();
+                g3d.strokeWeight(5);
+                g3d.strokeCap(PConstants.ROUND);
+                g3d.stroke(255, 0, 255);
+                g3d.translate(x1 + (x2 - x1) / 2.f, y1 + (y2 - y1) / 2.f, z1 + (z2 - z1) / 2.f);
+                g3d.box(x2 - x1, y2 - y1, z2 - z1);
+                g3d.popStyle();
+                g3d.popMatrix();
+            }
+        }
+    }
+
 }

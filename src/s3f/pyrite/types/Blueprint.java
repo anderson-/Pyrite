@@ -13,25 +13,26 @@ import s3f.core.project.Editor;
 import s3f.core.project.Element;
 import s3f.core.project.Resource;
 import s3f.core.project.editormanager.TextFile;
-import s3f.pyrite.ui.Editor3D;
+import s3f.pyrite.ui.VolimetricCircuitEditor;
+import s3f.pyrite.ui.BlueprintEditor;
 
 /**
  *
  * @author anderson
  */
-public class Position3DFile extends ComplexElement implements TextFile {
+public class Blueprint extends ComplexElement implements TextFile {
 
-    public static final Element.CategoryData FLOWCHART_FILES = new Element.CategoryData("Position File", "pf", new ImageIcon(CircuitFile.class.getResource("/resources/icons/fugue/wand-hat.png")), new Position3DFile());
+    public static final Element.CategoryData FLOWCHART_FILES = new Element.CategoryData("Blueprint File", "blu", new ImageIcon(CircuitFile.class.getResource("/resources/icons/fugue/blueprints.png")), new Blueprint());
     
     private String text = "";
 
-    public Position3DFile() {
-        super("circuit", "/resources/icons/fugue/grid3d.png", FLOWCHART_FILES, new Class[]{Editor3D.class});
+    public Blueprint() {
+        super("Empty Blueprint", "/resources/icons/fugue/blueprint.png", FLOWCHART_FILES, new Class[]{BlueprintEditor.class});
     }
 
     @Override
     public Plugabble createInstance() {
-        return new Position3DFile();
+        return new Blueprint();
     }
 
     @Override
@@ -47,8 +48,8 @@ public class Position3DFile extends ComplexElement implements TextFile {
     @Override
     public void addResource(Resource resource) {
         super.addResource(resource);
-        if (resource.getPrimary() instanceof Position3DFile) {
-            Position3DFile flowchart = (Position3DFile) resource.getPrimary();
+        if (resource.getPrimary() instanceof Blueprint) {
+            Blueprint flowchart = (Blueprint) resource.getPrimary();
             flowchart.addExternalResource(resource.getSecondary());
             Editor currentEditor = getCurrentEditor();
             if (currentEditor != null) {
@@ -60,8 +61,8 @@ public class Position3DFile extends ComplexElement implements TextFile {
     @Override
     public void removeResource(Resource resource) {
         super.removeResource(resource);
-        if (resource.getPrimary() instanceof Position3DFile) {
-            Position3DFile flowchart = (Position3DFile) resource.getPrimary();
+        if (resource.getPrimary() instanceof Blueprint) {
+            Blueprint flowchart = (Blueprint) resource.getPrimary();
             flowchart.removeExternalResource(resource.getSecondary());
             Editor currentEditor = getCurrentEditor();
             if (currentEditor != null) {

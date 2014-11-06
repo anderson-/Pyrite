@@ -8,17 +8,21 @@ package s3f.pyrite.ui.drawing3d;
 import com.falstad.circuit.CircuitElm;
 import com.falstad.circuit.elements.LogicOutputElm;
 import com.falstad.circuit.elements.SwitchElm;
-import com.falstad.circuit.elements.WireElm;
 import com.jogamp.newt.event.KeyEvent;
-import com.jogamp.opengl.math.geom.AABBox;
 import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Point;
-import static java.lang.Math.PI;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.swing.JColorChooser;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import processing.core.PApplet;
+import static processing.core.PConstants.PI;
 import static processing.core.PConstants.QUAD_STRIP;
 import static processing.core.PConstants.TRIANGLES;
 import static processing.core.PConstants.TRIANGLE_FAN;
@@ -32,7 +36,7 @@ import s3f.pyrite.core.Component;
 import s3f.pyrite.core.Connection;
 import s3f.pyrite.core.DefaultGridFittingTool;
 import s3f.pyrite.core.Grid;
-import s3f.pyrite.ui.Editor3D;
+import s3f.pyrite.core.cycle.BreadcrumbPlacer;
 import s3f.util.cyzx.HistoryManager;
 import s3f.util.cyzx.Undoable;
 
@@ -48,7 +52,13 @@ public class Circuit3DEditPanel extends DrawingPanel3D implements Undoable<Circu
     private PGraphics3D pickerBuffer;
     private ObjectPicker.Selectable<Component> pickerSource;
     private Circuit circuit;
-    private Grid grid = Grid.SIMPLE;
+    private Grid.FiniteGrid finiteGrid = new Grid.FiniteGrid(Grid.SIMPLE3);
+    private int[] bounds = new int[]{0, 0, 0, 1, 1, 1};
+    private Color bgcolor = Color.LIGHT_GRAY;
+
+    {
+        finiteGrid.addBoundary(bounds);
+    }
     private Thread cubThread = null;
     private ArrayList<String> messages = new ArrayList<>();
     private Thread placeThread = null;
@@ -60,9 +70,16 @@ public class Circuit3DEditPanel extends DrawingPanel3D implements Undoable<Circu
     public int gen = 5;
     private Circuit orig = null;
 
+    float selectedTheta = 0;
+    int selectedAlpha = 200;
+    private boolean increaseAlpha = true;
+
+    private boolean showInfo = true;
+
     public Circuit3DEditPanel(Circuit circuit) {
         super(800, 600, true);
 
+        panInsteadOfZoom = true;
         eyeZ = 1150;
         atX = 0;
         atY = -200;
@@ -77,24 +94,6 @@ public class Circuit3DEditPanel extends DrawingPanel3D implements Undoable<Circu
         defaultDrawer = new CircuitDrawingTool() {
             @Override
             public void drawNode(Component c, PGraphics g3d) {
-
-                boolean printNodeInfo = false;
-                for (Component bn : picker) {
-                    if (bn.equals(c)) {
-                        printNodeInfo = true;
-                        break;
-                    }
-                }
-
-                if (printNodeInfo || true) {
-                    g3d.pushMatrix();
-                    g3d.translate(c.getPos()[0], c.getPos()[1], c.getPos()[2]);
-                    g3d.fill(0);
-                    g3d.scale(DrawingPanel3D.RESET_SCALE / 10);
-                    g3d.textSize(100);
-                    g3d.text(c.getUID() + Arrays.toString(c.getPos()), 120, 0, 0);
-                    g3d.popMatrix();
-                }
 
                 if (!c.getName().isEmpty()) {
                     switch (c.getName()) {
@@ -146,7 +145,7 @@ public class Circuit3DEditPanel extends DrawingPanel3D implements Undoable<Circu
                     } else {
                         g3d.stroke(0, 255, 0);
                         if (v.getPos() != null) {
-                            if (con.whut != null) {
+                            if (con.whut != null && false) {
                                 float f = (float) ((CircuitElm) con.whut).getWhut() / 100;
                                 drawElec(g3d, c.getPos()[0], c.getPos()[1], c.getPos()[2], v.getPos()[0], v.getPos()[1], v.getPos()[2], f);
                             } else {
@@ -211,16 +210,61 @@ public class Circuit3DEditPanel extends DrawingPanel3D implements Undoable<Circu
                     }
                 }
 
-                //g3d.stroke(0);
                 for (Component bn : picker) {
                     if (bn.equals(c)) {
                         g3d.stroke(Color.blue.getRGB());
                     }
                 }
 
+                super.drawNode(c, g3d);
+
+                boolean showCurrentNodeInfo = false;
+
+                for (Component bn : picker) {
+                    if (bn.equals(c)) {
+                        {
+                            g3d.pushStyle();
+                            g3d.pushMatrix();
+                            g3d.fill(0, 255, 255, selectedAlpha);
+                            g3d.noStroke();
+                            g3d.translate(c.getPos()[0], c.getPos()[1], c.getPos()[2]);
+                            g3d.pushMatrix();
+                            //rotateX(t);
+//                            g3d.rotateZ(selectedTheta);
+                            g3d.box(0.3f);
+                            g3d.popMatrix();
+                            // info
+                            showCurrentNodeInfo = true;
+
+                            if (!showInfo) {
+
+//                            g3d.rotateZ(PI / 2);
+//                            g3d.rotateX(-PI / 2);
+//                            g3d.translate(0.1f * scale, -0.1f * scale);
+//                            fill(0);
+//                            textSize(0.1f * scale);
+//                            text(n.getInfo(), 0, 0, 0);
+                            }
+
+                            g3d.popMatrix();
+                            g3d.popStyle();
+                        }
+
+                    }
+                }
+
+                if (showInfo || showCurrentNodeInfo) {
+                    g3d.pushMatrix();
+                    g3d.translate(c.getPos()[0], c.getPos()[1], c.getPos()[2]);
+                    g3d.fill(0);
+                    g3d.scale(DrawingPanel3D.RESET_SCALE / 10);
+                    g3d.textSize(100);
+                    g3d.text(c.getUID() + Arrays.toString(c.getPos()), 120, 0, 0);
+                    g3d.popMatrix();
+                }
+
 //                g3d.fill(Color.HSBtoRGB((Circuit3DEditPanel.this.circuit.vertices.indexOf(c) / (float) Circuit3DEditPanel.this.circuit.vertices.size()), 1, 1));
 //                g3d.noStroke();
-                super.drawNode(c, g3d);
             }
 
         };
@@ -297,13 +341,18 @@ public class Circuit3DEditPanel extends DrawingPanel3D implements Undoable<Circu
 
     @Override
     public void draw(PGraphics3D g3d) {
-        //g3d.background(140, 170, 255);
-        //g3d.background(18,97,128);
-        //g3d.background(150,200,169);
-        g3d.background(246, 217, 159);
-        //g3d.background(200);
+//        g3d.background(140, 170, 255);
+//        g3d.background(18,97,128);
+//        g3d.background(150,200,169);
+//        g3d.background(246, 217, 159);
+        g3d.background(bgcolor.getRGB());
+
+//        g3d.lights();
         defaultDrawer.drawAll(g3d);
 //        cylinder(g3d,.02f,2f,10);
+
+        //g3d.rect(0, 0, 10, 10);
+        defaultGridFittingTool.draw(g3d);
 
 //        if (picker.getSize() == 2) {
 //            Iterator<Component> iterator = picker.iterator();
@@ -311,6 +360,16 @@ public class Circuit3DEditPanel extends DrawingPanel3D implements Undoable<Circu
 //            Component c2 = iterator.next();
 //            printPath(g3d, c1, c2);
 //        }
+        if (increaseAlpha) {
+            selectedAlpha += 8;
+        } else {
+            selectedAlpha -= 8;
+        }
+
+        if (selectedAlpha > 220 || selectedAlpha < 60) {
+            increaseAlpha = !increaseAlpha;
+        }
+        selectedTheta += 1 / 9f;
     }
 
     @Override
@@ -386,33 +445,77 @@ public class Circuit3DEditPanel extends DrawingPanel3D implements Undoable<Circu
 
     @Override
     public void keyTyped(PApplet applet) {
-        for (final Component c : picker) {
-            if (c.getPos() == null) {
-                continue;
-            }
+        if (picker.isEmpty()) {
             switch (applet.keyCode) {
                 case KeyEvent.VK_J:
                     hm.saveState();
-                    c.getPos()[0] += left().x;
-                    c.getPos()[1] += left().y;
+                    bounds[3] += left().x;
+                    bounds[4] += left().y;
                     break;
                 case KeyEvent.VK_L:
                     hm.saveState();
-                    c.getPos()[0] += right().x;
-                    c.getPos()[1] += right().y;
+                    bounds[3] += right().x;
+                    bounds[4] += right().y;
                     break;
                 case KeyEvent.VK_I:
                     hm.saveState();
-                    c.getPos()[2]++;
+                    bounds[5]++;
                     break;
                 case KeyEvent.VK_K:
                     hm.saveState();
-                    c.getPos()[2]--;
+                    bounds[5]--;
                     break;
+            }
+        } else {
+            for (final Component c : picker) {
+                if (c.getPos() == null) {
+                    continue;
+                }
+                switch (applet.keyCode) {
+                    case KeyEvent.VK_J:
+                        hm.saveState();
+                        c.getPos()[0] += left().x;
+                        c.getPos()[1] += left().y;
+                        break;
+                    case KeyEvent.VK_L:
+                        hm.saveState();
+                        c.getPos()[0] += right().x;
+                        c.getPos()[1] += right().y;
+                        break;
+                    case KeyEvent.VK_I:
+                        hm.saveState();
+                        c.getPos()[2]++;
+                        break;
+                    case KeyEvent.VK_K:
+                        hm.saveState();
+                        c.getPos()[2]--;
+                        break;
+                }
             }
         }
 
-        if (applet.keyCode == KeyEvent.VK_BACK_SPACE) {
+        if (applet.keyCode == KeyEvent.VK_B) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    final JColorChooser chooser = new JColorChooser(bgcolor);
+                    chooser.getSelectionModel().addChangeListener(new ChangeListener() {
+                        @Override
+                        public void stateChanged(ChangeEvent ce) {
+                            bgcolor = chooser.getColor();
+                        }
+                    });
+                    JDialog dialog = JColorChooser.createDialog(null,
+                            "Choose a Color", false, chooser, new ActionListener() {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    bgcolor = chooser.getColor();
+                                }
+                            }, null);
+                    dialog.setVisible(true);
+                }
+            });
+        } else if (applet.keyCode == KeyEvent.VK_BACK_SPACE) {
 //            circuit.reset();
             new Thread() {
                 @Override
@@ -435,7 +538,7 @@ public class Circuit3DEditPanel extends DrawingPanel3D implements Undoable<Circu
                         try {
                             int i = print("cubeficating...");
                             hm.saveState();
-                            defaultGridFittingTool.fit(circuit, grid);
+                            defaultGridFittingTool.fit(circuit);
                             print(i, "cubeficating... done.");
                         } catch (ThreadDeath e) {
                             print("break");
@@ -463,6 +566,16 @@ public class Circuit3DEditPanel extends DrawingPanel3D implements Undoable<Circu
 //                    }
 //                }
 //            }.start();
+        } else if (applet.keyCode == KeyEvent.VK_C) {
+            if (picker.isEmpty()) {
+                for (Component c : circuit.getComponents()) {
+                    picker.add(c);
+                }
+            } else {
+                picker.clear();
+            }
+        } else if (applet.keyCode == KeyEvent.VK_H) {
+            BreadcrumbPlacer.TEST.fit(circuit);
         } else if (applet.keyCode == KeyEvent.VK_Z) {
             hm.undo();
         } else if (applet.keyCode == KeyEvent.VK_Y) {
@@ -539,6 +652,7 @@ public class Circuit3DEditPanel extends DrawingPanel3D implements Undoable<Circu
 //                placeThread.start();
 //            }
         } else if (applet.keyCode == KeyEvent.VK_T) {
+            showInfo = !showInfo;
 //            if (Circuit.sleep == 0) {
 //                Circuit.sleep = 10;
 //            } else {
@@ -546,20 +660,23 @@ public class Circuit3DEditPanel extends DrawingPanel3D implements Undoable<Circu
 //            }
 //            print("Set timestep = " + Circuit.sleep + " ms");
         } else if (applet.keyCode == KeyEvent.VK_1) {
-            print("SET: Topology.SIMPLE");
-            grid = Grid.SIMPLE;
+            print("SET: Grid.SIMPLE");
+            defaultGridFittingTool.setGrid(Grid.SIMPLE);
         } else if (applet.keyCode == KeyEvent.VK_2) {
-            print("SET: Topology.SIMPLE2");
-            grid = Grid.SIMPLE2;
+            print("SET: Grid.SIMPLE2");
+            defaultGridFittingTool.setGrid(Grid.SIMPLE2);
         } else if (applet.keyCode == KeyEvent.VK_3) {
-            print("SET: Topology.SIMPLE3");
-            grid = Grid.SIMPLE3;
+            print("SET: Grid.SIMPLE3");
+            defaultGridFittingTool.setGrid(Grid.SIMPLE3);
         } else if (applet.keyCode == KeyEvent.VK_4) {
-            print("SET: Topology.SIMPLE4");
-            grid = Grid.SIMPLE4;
+            print("SET: Grid.SIMPLE4");
+            defaultGridFittingTool.setGrid(Grid.SIMPLE4);
         } else if (applet.keyCode == KeyEvent.VK_5) {
-            print("SET: Topology.HEX");
-            grid = Grid.HEX;
+            print("SET: Grid.HEX");
+            defaultGridFittingTool.setGrid(Grid.HEX);
+        } else if (applet.keyCode == KeyEvent.VK_6) {
+            print("SET: Custom");
+            defaultGridFittingTool.setGrid(finiteGrid);
         }
 
     }
@@ -749,8 +866,6 @@ public class Circuit3DEditPanel extends DrawingPanel3D implements Undoable<Circu
             // radius angle is used for scaling circle
             float angle_step = 180.0f / res;
             float angle = angle_step;
-//            float[] ringVertsX = new float[res];
-//            float[] ringVertsZ = new float[res];
 
             for (int i = 1; i < res; i++) {
                 float curradius = (float) Math.sin(angle * rad);

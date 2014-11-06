@@ -20,7 +20,6 @@ import edu.uci.ics.jung.graph.SparseMultigraph;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
 import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
-import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -50,32 +49,29 @@ import s3f.core.ui.tab.TabProperty;
 import s3f.pyrite.core.Circuit;
 import s3f.pyrite.core.Component;
 import s3f.pyrite.core.Connection;
-import s3f.pyrite.types.Position3DFile;
+import s3f.pyrite.types.CircuitFile;
+import s3f.pyrite.types.VolumetricCircuit;
 import s3f.pyrite.ui.components.DigitalLogicTester;
 import s3f.pyrite.ui.components.MyLogicInputElm;
 import s3f.pyrite.ui.components.MyLogicOutputElm;
 import s3f.pyrite.ui.components.SubCircuitElm;
 import s3f.pyrite.ui.drawing3d.Circuit3DEditPanel;
 
-/**
- *
- * @author anderson
- */
-public class Editor3D extends DockingWindowAdapter implements Editor {
+public class VolimetricCircuitEditor extends DockingWindowAdapter implements Editor {
 
     static int DEBUG = 6;
     static boolean CLOSE = false;
 
 //    private static final ImageIcon ICON = new ImageIcon(ModularCircuitEditor.class.getResource("/resources/icons/fugue/block.png"));
     private final Data data;
-    private Position3DFile textFile;
+    private VolumetricCircuit volumetricCircuitFile;
     private Circuit3DEditPanel drawingPanel;
     private Scene3D applet;
     private float[] eye = null;
 
     JRootPane p = new JRootPane();
 
-    public Editor3D() {
+    public VolimetricCircuitEditor() {
         data = new Data("editorTab", "s3f.core.code", "Editor Tab");
         createApplet();
         TabProperty.put(data, "Editor", null, "Editor de código", p);
@@ -91,28 +87,79 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
             drawingPanel.setEye(eye);
         }
         applet = drawingPanel.getApplet();
-        applet.init();
+        //p.getContentPane().add(Gears.getGears());
         p.getContentPane().add(applet);
+        new Thread() {
+            @Override
+            public void run() {
+                applet.init();
+//                try {
+//                    Thread.sleep(500);
+//                    drawingPanel.getApplet().invalidate();
+//                } catch (InterruptedException ex) {
+//                }
+            }
+        }.start();
+//        new Thread() {
+//            @Override
+//            public void run() {
+//                while (true) {
+//                    try {
+//                        Thread.sleep(400);
+//                    } catch (InterruptedException ex) {
+//                    }
+//
+//                    if (PGL.canvas != null) {
+//                        p.getContentPane().removeAll();
+//                        p.getContentPane().add(PGL.canvas);
+//                        new Thread() {
+//                            @Override
+//                            public void run() {
+//                                while (true) {
+//                                    try {
+//                                        Thread.sleep(100);
+//                                        PGL.canvas.repaint();
+//                                    } catch (InterruptedException ex) {
+//                                    }
+//                                }
+//                            }
+//                        }.start();
+//                        return;
+//                    }
+////                    p3d.get
+//                }
+//            }
+//        }.start();
     }
 
     @Override
-    public void setContent(Element content) {
-        if (content instanceof Position3DFile) {
-            textFile = (Position3DFile) content;
+    public void setContent(final Element content) {
+        if (content instanceof VolumetricCircuit) {
+            volumetricCircuitFile = (VolumetricCircuit) content;
+
+            for (final Object o : volumetricCircuitFile.getExternalResources()) {
+                if (o instanceof CircuitFile) {
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            TextFile textFile = (CircuitFile) o;
+                            Circuit circuit;
+                            if (!textFile.getText().isEmpty()) {
+                                circuit = parseString(textFile.getText());
+                            } else {
+                                circuit = new Circuit();
+                            }
+                            drawingPanel.setCircuit(circuit);
+                            volumetricCircuitFile.setCircuit(circuit);
+                        }
+                    }.start();
+                    data.setProperty(TabProperty.TITLE, content.getName());
+                    data.setProperty(TabProperty.ICON, content.getIcon());
+                }
+            }
+
         }
 
-        if (content instanceof TextFile) {
-            TextFile textFile = (TextFile) content;
-            if (!textFile.getText().isEmpty()) {
-                Circuit circuit = parseString(textFile.getText());
-                drawingPanel.setCircuit(circuit);
-//                showGraph(createGraph(circuit), true);
-            } else {
-                drawingPanel.setCircuit(new Circuit());
-            }
-            data.setProperty(TabProperty.TITLE, content.getName());
-            data.setProperty(TabProperty.ICON, content.getIcon());
-        }
     }
 
     private static CircuitSimulator createDummyCS(String text) {
@@ -169,7 +216,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 
     public static CircuitSimulator createCS2(String text) {
         JApplet window = new JApplet();
-        final CircuitSimulator cs = new CircuitSimulator();
+        final CircuitSimulator cs = new CircuitSimulator(false);
         cs.setStopped(false);
         cs.setContainer(window.getContentPane());
         cs.startCircuitText = text;
@@ -284,9 +331,9 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         //showGraph(c, "");
         //String s = dumpCircuit(c, createDummyCS(""));
         //createCS(s);
-        Editor3D.DEBUG = 5;
-        Editor3D.SLEEP = 0;
-        Editor3D.CLOSE = true;
+        VolimetricCircuitEditor.DEBUG = 5;
+        VolimetricCircuitEditor.SLEEP = 0;
+        VolimetricCircuitEditor.CLOSE = true;
 
         String circuitString = hard;
         boolean anim = false;
@@ -295,14 +342,14 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                 @Override
                 public void run() {
                     JOptionPane.showMessageDialog(null, "Close this dialog to speed thing up.");
-                    Editor3D.SLEEP = 0;
+                    VolimetricCircuitEditor.SLEEP = 0;
                 }
             }.start();
-            Editor3D.SLEEP = 500;
+            VolimetricCircuitEditor.SLEEP = 500;
         }
-        Editor3D.createCS(circuitString);
-        Circuit cir = Editor3D.parseString(circuitString, anim);
-        Editor3D.createCS(Editor3D.dumpCircuit(cir));
+        VolimetricCircuitEditor.createCS(circuitString);
+        Circuit cir = VolimetricCircuitEditor.parseString(circuitString, anim);
+        VolimetricCircuitEditor.createCS(VolimetricCircuitEditor.dumpCircuit(cir));
     }
 
     private static void testJoin() {
@@ -961,7 +1008,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
         DefaultModalGraphMouse gm = new DefaultModalGraphMouse();
         gm.setMode(ModalGraphMouse.Mode.TRANSFORMING);
         vv.setGraphMouse(gm);
-        final JFrame frame = new JFrame(title + " V:" + graph.getVertexCount() + " E:" + graph.getEdgeCount());
+        final JFrame frame = new JFrame(title + " V:" + graph.getVertexCount() + "/" + circuit.getComponents().size() + " E:" + graph.getEdgeCount() + "/" + circuit.getConnections().size());
         JMenuBar jMenuBar = new JMenuBar();
         jMenuBar.add(gm.getModeMenu());
         frame.setJMenuBar(jMenuBar);
@@ -1008,7 +1055,7 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
                             } catch (Exception ex) {
 //                                ex.printStackTrace();
                             }
-                            frame.setTitle(title + " V:" + graph.getVertexCount() + " E:" + graph.getEdgeCount() + " - " + circuit.getStatus());
+                            frame.setTitle(title + " V:" + graph.getVertexCount() + "/" + circuit.getComponents().size() + " E:" + graph.getEdgeCount() + "/" + circuit.getConnections().size());
 //                            vv.repaint();
                         }
                     } catch (Exception ex) {
@@ -1141,12 +1188,12 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 
     @Override
     public Element getContent() {
-        return textFile;
+        return volumetricCircuitFile;
     }
 
     @Override
     public void update() {
-        for (Object o : textFile.getExternalResources()) {
+        for (Object o : volumetricCircuitFile.getExternalResources()) {
             if (o instanceof TextFile) {
                 TextFile textFile = (TextFile) o;
                 setContent(textFile);
@@ -1183,6 +1230,6 @@ public class Editor3D extends DockingWindowAdapter implements Editor {
 
     @Override
     public Plugabble createInstance() {
-        return new Editor3D();
+        return new VolimetricCircuitEditor();
     }
 }

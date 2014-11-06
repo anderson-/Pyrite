@@ -24,7 +24,12 @@ import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /**
  *
@@ -65,8 +70,16 @@ public class ConfigurationTab {
 
     }
 
-    public @interface Button {
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface Spinner {
 
+        public String name();
+
+        public int min();
+
+        public int max();
+
+        public int step();
     }
 
     public ConfigurationTab(Object parameters) {
@@ -144,6 +157,25 @@ public class ConfigurationTab {
                 }
             });
             return c;
+        } else if (annotation instanceof Spinner) {
+            Spinner spinner = (Spinner) annotation;
+            JPanel p = new JPanel();
+            final JSpinner s = new JSpinner();
+            s.setModel(new SpinnerNumberModel(field.getLong(obj), spinner.min(), spinner.max(), spinner.step()));
+            s.addChangeListener(new ChangeListener() {
+                @Override
+                public void stateChanged(ChangeEvent ce) {
+                    try {
+                        field.setInt(obj, ((Number) s.getValue()).intValue());
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            });
+            p.setLayout(new BoxLayout(p, BoxLayout.LINE_AXIS));
+            p.add(new JLabel(spinner.name()));
+            p.add(s);
+            return p;
         }
         return createJComponent(annotation);
     }

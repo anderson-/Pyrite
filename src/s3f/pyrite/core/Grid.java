@@ -6,6 +6,7 @@
 package s3f.pyrite.core;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -14,12 +15,79 @@ import java.util.List;
  */
 public abstract class Grid {
 
-//    public static int X = 10;
-//    public static int Y = 10;
-//    public static int Z = 10;
+    public static class FiniteGrid extends Grid {
+
+        public static interface BoundingFunction {
+
+            public boolean isValid(int... pos);
+
+        }
+
+        private Grid gen;
+        private final ArrayList<int[]> boundaries = new ArrayList<>();
+        private final ArrayList<BoundingFunction> functions = new ArrayList<>();
+
+        public FiniteGrid(Grid gen) {
+            this.gen = gen;
+        }
+
+        public void addBoundingFunction(BoundingFunction f) {
+            functions.add(f);
+        }
+
+        public void removeBoundingFunction(BoundingFunction f) {
+            functions.remove(f);
+        }
+
+        public void addBoundary(int x1, int y1, int z1, int x2, int y2, int z2) {
+            boundaries.add(new int[]{x1, y1, z1, x2, y2, z2});
+        }
+
+        public void addBoundary(int[] b) {
+            if (b.length >= 6 && !boundaries.contains(b)) {
+                boundaries.add(b);
+            }
+        }
+
+        public void removeBoundary(int[] b) {
+            boundaries.remove(b);
+        }
+        
+        public List<int[]> getBoundaries(){
+            return boundaries;
+        }
+
+        @Override
+        public List<int[]> getNeighborhood(int... pos) {
+            List<int[]> nd = gen.getNeighborhood(pos);
+
+            for (BoundingFunction f : functions) {
+                for (Iterator<int[]> it = nd.iterator(); it.hasNext();) {
+                    int[] p = it.next();
+                    if (!f.isValid(p)) {
+                        it.remove();
+                    }
+                }
+            }
+
+            for (Iterator<int[]> it = nd.iterator(); it.hasNext();) {
+                int[] p = it.next();
+                for (int[] b : boundaries) {
+                    if (((((p[0] < b[0] || p[1] < b[1]) || p[2] < b[2]) || p[0] >= b[3]) || p[1] >= b[4]) || p[2] >= b[5]) {
+                        it.remove();
+                        break;
+                    }
+                }
+            }
+
+            return nd;
+        }
+
+    }
+
     public static final Grid SIMPLE = new Grid() {
         @Override
-        public ArrayList<int[]> getNeighborhood(int... pos) {
+        public List<int[]> getNeighborhood(int... pos) {
             ArrayList<int[]> nd = new ArrayList<>();
 
             for (int i = -1; i <= 1; i++) {
@@ -29,11 +97,9 @@ public abstract class Grid {
                         int y = pos[1] + j;
                         int z = pos[2] + k;
 
-//                        if (x >= 0 && y >= 0 && z >= 0 && x < X && y < Y && z < Z) {
                         if (Math.abs(i) + Math.abs(j) + Math.abs(k) == 1) {
                             nd.add(new int[]{x, y, z});
                         }
-//                        }
                     }
                 }
             }
@@ -43,7 +109,7 @@ public abstract class Grid {
 
     public static final Grid SIMPLE2 = new Grid() {
         @Override
-        public ArrayList<int[]> getNeighborhood(int... pos) {
+        public List<int[]> getNeighborhood(int... pos) {
             ArrayList<int[]> nd = new ArrayList<>();
 
             for (int i = -1; i <= 1; i++) {
@@ -53,12 +119,9 @@ public abstract class Grid {
                         int y = pos[1] + j;
                         int z = pos[2] + k;
 
-//                        if (x >= 0 && y >= 0 && z >= 0 && x < X && y < Y && z < Z) {
                         if (Math.abs(i) + Math.abs(j) + Math.abs(k) <= 2) {
-                            //if (Math.abs(i) + Math.abs(j) + Math.abs(k) > 2) {
                             nd.add(new int[]{x, y, z});
                         }
-//                        }
                     }
                 }
             }
@@ -68,7 +131,7 @@ public abstract class Grid {
 
     public static final Grid SIMPLE3 = new Grid() {
         @Override
-        public ArrayList<int[]> getNeighborhood(int... pos) {
+        public List<int[]> getNeighborhood(int... pos) {
             ArrayList<int[]> nd = new ArrayList<>();
 
             for (int i = -1; i <= 1; i++) {
@@ -78,13 +141,9 @@ public abstract class Grid {
                         int y = pos[1] + j;
                         int z = pos[2] + k;
 
-//                        if (x >= 0 && y >= 0 && z >= 0 && x < X && y < Y && z < Z) {
-                        //if (Math.abs(i) + Math.abs(j) + Math.abs(k) <= 2) { //apenas planos
                         if (Math.abs(i) + Math.abs(j) + Math.abs(k) != 0) { //3d
-                            //if (Math.abs(i) + Math.abs(j) + Math.abs(k) > 2) {
                             nd.add(new int[]{x, y, z});
                         }
-//                        }
                     }
                 }
             }
@@ -97,15 +156,13 @@ public abstract class Grid {
         int y = pos[1];
         int z = pos[2];
 
-//        if (x >= 0 && y >= 0 && z >= 0 && x < X && y < Y && z < Z) {
         nd.add(pos);
-//        }
     }
 
     public static final Grid HEX = new Grid() {
 
         @Override
-        public ArrayList<int[]> getNeighborhood(int... pos) {
+        public List<int[]> getNeighborhood(int... pos) {
             ArrayList<int[]> nd = new ArrayList<>();
 
             int x = pos[0];
@@ -173,7 +230,7 @@ public abstract class Grid {
         }
 
         @Override
-        public ArrayList<int[]> getNeighborhood(int... pos) {
+        public List<int[]> getNeighborhood(int... pos) {
             if (pos.length > 3) {
                 a.clear();
                 for (int i = -1; i <= 1; i++) {
@@ -195,11 +252,9 @@ public abstract class Grid {
                         int y = pos[1] + j;
                         int z = pos[2] + k;
 
-//                        if (x >= 0 && y >= 0 && z >= 0 && x < X && y < Y && z < Z) {
                         if (Math.abs(i) + Math.abs(j) + Math.abs(k) != 0 && a.get(e)) {
                             nd.add(new int[]{x, y, z});
                         }
-//                        }
                         e++;
                     }
                 }

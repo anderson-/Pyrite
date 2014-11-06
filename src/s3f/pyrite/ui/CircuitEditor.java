@@ -6,16 +6,13 @@
 package s3f.pyrite.ui;
 
 import com.falstad.circuit.CircuitSimulator;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.JApplet;
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JSpinner;
-import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -26,7 +23,6 @@ import s3f.core.project.Element;
 import s3f.core.project.editormanager.TextFile;
 import s3f.core.ui.tab.TabProperty;
 import s3f.pyrite.core.Circuit;
-import static s3f.pyrite.ui.Editor3D.showGraph;
 import s3f.pyrite.ui.components.DigitalLogicTester;
 import s3f.pyrite.ui.components.MyLogicInputElm;
 import s3f.pyrite.ui.components.MyLogicOutputElm;
@@ -44,7 +40,7 @@ public class CircuitEditor implements Editor {
     private TextFile circuit;
 
     public Circuit C = null;
-    
+
     public CircuitEditor() {
         data = new Data("editorTab", "s3f.core.code", "Editor Tab");
         JApplet window = new JApplet();
@@ -58,11 +54,11 @@ public class CircuitEditor implements Editor {
         window.setJMenuBar(circuitSimulator.getGUI().createGUI(false));
         circuitSimulator.posInit();
         final JSpinner debugLevel = new JSpinner();
-        debugLevel.setModel(new SpinnerNumberModel(Editor3D.DEBUG, 0, Editor3D.DEBUG, 1));
+        debugLevel.setModel(new SpinnerNumberModel(VolimetricCircuitEditor.DEBUG, 0, VolimetricCircuitEditor.DEBUG, 1));
         debugLevel.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent ce) {
-                Editor3D.DEBUG = (int) debugLevel.getValue();
+                VolimetricCircuitEditor.DEBUG = (int) debugLevel.getValue();
             }
         });
         JButton convertButton = new JButton("Convert!");
@@ -71,7 +67,7 @@ public class CircuitEditor implements Editor {
             public void actionPerformed(ActionEvent ae) {
                 new Thread() {
                     public void run() {
-                        Circuit cir = Editor3D.parseString(circuitSimulator.dumpCircuit());
+                        Circuit cir = VolimetricCircuitEditor.parseString(circuitSimulator.dumpCircuit());
                         C = cir;
                     }
                 }.start();
@@ -83,9 +79,9 @@ public class CircuitEditor implements Editor {
             public void actionPerformed(ActionEvent ae) {
                 new Thread() {
                     public void run() {
-                        Circuit cir = Editor3D.parseString(circuitSimulator.dumpCircuit());
+                        Circuit cir = VolimetricCircuitEditor.parseString(circuitSimulator.dumpCircuit());
                         C = cir;
-                        Editor3D.createCS(Editor3D.dumpCircuit(cir));
+                        VolimetricCircuitEditor.createCS(VolimetricCircuitEditor.dumpCircuit(cir));
                     }
                 }.start();
             }
@@ -95,7 +91,7 @@ public class CircuitEditor implements Editor {
         animTimestep.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent ce) {
-                Editor3D.SLEEP = (int) animTimestep.getValue();
+                VolimetricCircuitEditor.SLEEP = (int) animTimestep.getValue();
             }
         });
         JButton convertAndAnimate = new JButton("Animate!");
@@ -104,14 +100,14 @@ public class CircuitEditor implements Editor {
             public void actionPerformed(ActionEvent ae) {
                 new Thread() {
                     public void run() {
-                        int d = Editor3D.DEBUG;
-                        Editor3D.DEBUG = 0;
-                        Editor3D.SLEEP = (int) animTimestep.getValue();
-                        Circuit cir = Editor3D.parseString(circuitSimulator.dumpCircuit(), true);
+                        int d = VolimetricCircuitEditor.DEBUG;
+                        VolimetricCircuitEditor.DEBUG = 0;
+                        VolimetricCircuitEditor.SLEEP = (int) animTimestep.getValue();
+                        Circuit cir = VolimetricCircuitEditor.parseString(circuitSimulator.dumpCircuit(), true);
                         C = cir;
-                        Editor3D.createCS(Editor3D.dumpCircuit(cir));
-                        Editor3D.DEBUG = d;
-                        Editor3D.SLEEP = 0;
+                        VolimetricCircuitEditor.createCS(VolimetricCircuitEditor.dumpCircuit(cir));
+                        VolimetricCircuitEditor.DEBUG = d;
+                        VolimetricCircuitEditor.SLEEP = 0;
                         animTimestep.setValue(0);
                     }
                 }.start();
@@ -123,7 +119,7 @@ public class CircuitEditor implements Editor {
             public void actionPerformed(ActionEvent ae) {
                 new Thread() {
                     public void run() {
-                        Circuit cir = Editor3D.parseString(circuitSimulator.dumpCircuit());
+                        Circuit cir = VolimetricCircuitEditor.parseString(circuitSimulator.dumpCircuit());
                         C = cir.copy();
                     }
                 }.start();
@@ -135,7 +131,7 @@ public class CircuitEditor implements Editor {
             public void actionPerformed(ActionEvent ae) {
                 new Thread() {
                     public void run() {
-                        Editor3D.createCS(Editor3D.dumpCircuit(C));
+                        VolimetricCircuitEditor.createCS(VolimetricCircuitEditor.dumpCircuit(C));
                     }
                 }.start();
             }
@@ -152,6 +148,43 @@ public class CircuitEditor implements Editor {
         TabProperty.put(data, "Editor", null, "Editor de código", window);
     }
 
+//    private class CycleFinder {
+//
+//        private int i = 0;
+//        private ArrayList<Connection> visited = new ArrayList<>();
+//
+//        public CycleFinder(Circuit c) {
+//            Connection start = c.getConnections().get(0);
+//            parseRings(start, start.getA());
+//            for (Connection con : c.getConnections()) {
+//                if (!visited.contains(con)) {
+//                    System.out.println("FAIL " + c.getConnections().size() + "x" + visited.size());
+//                    break;
+//                }
+//            }
+//        }
+//
+//        private void parseRings(Connection it, Component last) {
+//            if (visited.contains(it)) {
+//                return;
+//            }
+//            System.out.println(it);
+//            i++;
+//            Component next;
+//            do {
+//                next = it.getOtherComponent(last);
+//                visited.add(it);
+//                
+//                
+//                
+//            } while (next.getOtherConnection(it) != null);
+//            
+//            for (Connection c : next.getConnections()) {
+//                parseRings(c, last);
+//            }
+//        }
+//
+//    }
     @Override
     public void setContent(Element content) {
         if (content instanceof TextFile) {

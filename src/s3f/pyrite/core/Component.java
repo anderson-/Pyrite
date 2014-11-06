@@ -73,6 +73,17 @@ public class Component extends Fixable {
         return conns;
     }
 
+    public Connection getOtherConnection(Connection c) {
+        if (conns.size() == 2) {
+            if (conns.get(0) == c) {
+                return conns.get(1);
+            } else {
+                return conns.get(0);
+            }
+        }
+        return null;
+    }
+
     public void addShortcut(Component c) {
         if (!shortcut.contains(c)) {
             shortcut.add(c);
@@ -94,7 +105,7 @@ public class Component extends Fixable {
         return pos;
     }
 
-    public void setPos(int[] pos) {
+    public void setPos(int... pos) {
         this.pos = pos;
     }
 
@@ -114,6 +125,10 @@ public class Component extends Fixable {
     @Deprecated
     public void setCoupler(boolean coupler) {
         this.coupler = coupler;
+    }
+
+    public int getID() {
+        return uid;
     }
 
     public String getUID() {
