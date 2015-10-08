@@ -301,6 +301,14 @@ public class Circuit {
         return copy;
     }
 
+    public void printDOT() {
+        for (Component c : nodes) {
+            for (Connection con : c.getConnections()){
+                System.out.println(c.getID() + ";" + con.getOtherComponent(c).getID());
+            }
+        }
+    }
+
     public static class POJO {
 
         public List<List<Long>> pos;

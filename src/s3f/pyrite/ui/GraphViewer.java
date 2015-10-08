@@ -5,18 +5,13 @@
  */
 package s3f.pyrite.ui;
 
-import javax.swing.JPanel;
 import javax.swing.JRootPane;
-import quickp3d.DrawingPanel3D;
 import s3f.core.plugin.Data;
 import s3f.core.plugin.Plugabble;
 import s3f.core.project.Editor;
 import s3f.core.project.Element;
 import s3f.core.ui.tab.TabProperty;
-import s3f.pyrite.core.Circuit;
-import s3f.pyrite.core.Component;
 import s3f.pyrite.types.CircuitFile;
-import s3f.pyrite.ui.drawing3d.Circuit3DEditPanel;
 
 /**
  *
