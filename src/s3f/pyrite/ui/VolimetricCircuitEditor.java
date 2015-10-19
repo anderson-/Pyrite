@@ -134,30 +134,37 @@ public class VolimetricCircuitEditor extends DockingWindowAdapter implements Edi
 
     @Override
     public void setContent(final Element content) {
+        CircuitFile c = null;
         if (content instanceof VolumetricCircuit) {
             volumetricCircuitFile = (VolumetricCircuit) content;
 
-            for (final Object o : volumetricCircuitFile.getExternalResources()) {
+            for (Object o : volumetricCircuitFile.getExternalResources()) {
                 if (o instanceof CircuitFile) {
-                    new Thread() {
-                        @Override
-                        public void run() {
-                            TextFile textFile = (CircuitFile) o;
-                            Circuit circuit;
-                            if (!textFile.getText().isEmpty()) {
-                                circuit = parseString(textFile.getText());
-                            } else {
-                                circuit = new Circuit();
-                            }
-                            drawingPanel.setCircuit(circuit);
-                            volumetricCircuitFile.setCircuit(circuit);
-                        }
-                    }.start();
-                    data.setProperty(TabProperty.TITLE, content.getName());
-                    data.setProperty(TabProperty.ICON, content.getIcon());
+                    c = (CircuitFile) o;
                 }
             }
+        } else if (content instanceof CircuitFile) {
+            c = (CircuitFile) content;
+        }
 
+        if (c != null) {
+            final CircuitFile C = c;
+            new Thread() {
+                @Override
+                public void run() {
+                    TextFile textFile = C;
+                    Circuit circuit;
+                    if (!textFile.getText().isEmpty()) {
+                        circuit = parseString(textFile.getText());
+                    } else {
+                        circuit = new Circuit();
+                    }
+                    drawingPanel.setCircuit(circuit);
+                    volumetricCircuitFile.setCircuit(circuit);
+                }
+            }.start();
+            data.setProperty(TabProperty.TITLE, content.getName());
+            data.setProperty(TabProperty.ICON, content.getIcon());
         }
 
     }

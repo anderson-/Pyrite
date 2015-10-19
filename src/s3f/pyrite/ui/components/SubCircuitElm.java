@@ -11,6 +11,8 @@ import com.falstad.circuit.EditInfo;
 import com.falstad.circuit.elements.ChipElm;
 import com.falstad.circuit.elements.GateElm;
 import java.awt.Choice;
+import java.awt.Color;
+import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -52,6 +54,36 @@ public class SubCircuitElm extends ChipElm {
         if (st.hasMoreTokens()) {
             name = st.nextToken("\0").trim();
             reload();
+        }
+    }
+
+    public static boolean isStable(CircuitSimulator cs) {
+        if (cs != null) {
+            for (int i = 0; i < cs.elmListSize(); i++) {
+                CircuitElm elm = cs.getElm(i);
+                if (elm instanceof SubCircuitElm) {
+                    if (!isStable(((SubCircuitElm) elm).cs)) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return !cs.getAnalyzeFlag();
+    }
+
+    @Override
+    public void draw(Graphics g) {
+        int xc = x;
+        int yc = y;
+        int circleSize = 5;
+        super.draw(g);
+
+        if (this.cs != null && isStable(this.cs)) {
+            g.setColor(Color.green);
+            g.fillOval(xc - circleSize, yc - circleSize, circleSize * 2, circleSize * 2);
+        } else {
+            g.setColor(Color.red);
+            g.fillOval(xc - circleSize, yc - circleSize, circleSize * 2, circleSize * 2);
         }
     }
 
@@ -139,7 +171,9 @@ public class SubCircuitElm extends ChipElm {
             int k = 0;
 
             for (MyLogicInputElm i : inputs) {
-                i.setPosition(pins[k].value ? 1 : 0);
+                if (i.getPosition() != (pins[k].value ? 1 : 0)) {
+                    i.setPosition(pins[k].value ? 1 : 0);
+                }
                 k++;
             }
             for (MyLogicOutputElm o : outputs) {

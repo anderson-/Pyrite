@@ -75,8 +75,7 @@ public class DigitalLogicTester extends RailElm {
             return bias;
         } else {
             set = true;
-            if (get && sim.isConverged()) {
-                get = false;
+            if (get && SubCircuitElm.isStable(sim)) {
                 for (int i = 0; i < sim.elmListSize(); i++) {
                     CircuitElm elm = sim.getElm(i);
                     if (elm instanceof MyLogicOutputElm) {
@@ -86,6 +85,7 @@ public class DigitalLogicTester extends RailElm {
                 ok = table.getPartialResult();
                 System.out.println(ok);
             }
+            get = false;
             return bias + maxVoltage;
         }
     }

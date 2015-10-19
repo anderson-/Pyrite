@@ -68,6 +68,7 @@ public class CircuitEditor implements Editor {
                 new Thread() {
                     public void run() {
                         Circuit cir = VolimetricCircuitEditor.parseString(circuitSimulator.dumpCircuit());
+                        cir.printDOT();
                         C = cir;
                     }
                 }.start();

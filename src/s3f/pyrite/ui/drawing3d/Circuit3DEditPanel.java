@@ -281,11 +281,12 @@ public class Circuit3DEditPanel extends DrawingPanel3D implements Undoable<Circu
         pickerSource = new ObjectPicker.Selectable<Component>() {
             @Override
             public Component select(int index) {
-                if (index < Circuit3DEditPanel.this.circuit.getComponents().size()) {
-                    return Circuit3DEditPanel.this.circuit.getComponents().get(index);
-                } else {
-                    return null;
+                if (Circuit3DEditPanel.this.circuit != null) {
+                    if (index < Circuit3DEditPanel.this.circuit.getComponents().size()) {
+                        return Circuit3DEditPanel.this.circuit.getComponents().get(index);
+                    }
                 }
+                return null;
             }
         };
 
@@ -376,27 +377,34 @@ public class Circuit3DEditPanel extends DrawingPanel3D implements Undoable<Circu
     public void draw(PGraphics g2d) {
         int plc = 0;
         int n = 0;
-        for (Component c : circuit.getComponents()) {
-            plc += (c.getPos() == null) ? 1 : 0;
-            n += (c.isFixed()) ? 1 : 0;
-        }
         g2d.clear();
         g2d.fill(0);
         g2d.textSize(15);
+
         //top info
         g2d.textAlign = PApplet.LEFT;
         int x = 10;
         int y = 15;
-        g2d.text("Connections missing: " + circuit.getDisconectedConnections(), x, y);
-        y += 15;
-        g2d.text("Nodes placed: " + (circuit.getComponents().size() - plc), x, y);
-        y += 15;
-        g2d.text("Nodes unplaced: " + plc, x, y);
-        y += 15;
-        g2d.text("Nodes total: " + circuit.getComponents().size(), x, y);
-        y += 15;
-        g2d.text("Volume: " + circuit.calcVolume(), x, y);
-        y += 15;
+
+        if (circuit != null) {
+            for (Component c : circuit.getComponents()) {
+                plc += (c.getPos() == null) ? 1 : 0;
+                n += (c.isFixed()) ? 1 : 0;
+            }
+            g2d.text("Connections missing: " + circuit.getDisconectedConnections(), x, y);
+            y += 15;
+            g2d.text("Nodes placed: " + (circuit.getComponents().size() - plc), x, y);
+            y += 15;
+            g2d.text("Nodes unplaced: " + plc, x, y);
+            y += 15;
+            g2d.text("Nodes total: " + circuit.getComponents().size(), x, y);
+            y += 15;
+            g2d.text("Volume: " + circuit.calcVolume(), x, y);
+            y += 15;
+        } else {
+            g2d.text("NO FILE ATTACHED", x, y);
+            y += 15;
+        }
 //        int p = Circuit.fitnessFunction(n, circuit.getComponents().size(), circuit.getDisconectedConnections(), circuit.calcVolume());
 //        g2d.text("Points: " + p, x, y);
 //        y += 15;
