@@ -5,6 +5,7 @@
  */
 package s3f.pyrite.ui.components;
 
+import com.falstad.circuit.CircuitController;
 import com.falstad.circuit.CircuitElm;
 import com.falstad.circuit.CircuitSimulator;
 import com.falstad.circuit.EditInfo;
@@ -39,6 +40,7 @@ public class SubCircuitElm extends ChipElm {
     private ArrayList<MyLogicOutputElm> outputs = new ArrayList<>();
     private String name = "";
     private String circuit = "";
+    private SubCircuitElm parent = null;
 
     boolean hasReset() {
         return false;
@@ -78,7 +80,16 @@ public class SubCircuitElm extends ChipElm {
         int circleSize = 5;
         super.draw(g);
 
-        if (this.cs != null && isStable(this.cs)) {
+        SubCircuitElm i = this;
+        boolean s = true;
+        while (s && i != null) {
+            s &= isStable(i.cs);
+            i = i.parent;
+        }
+        if (this.cs.isStopped()) {
+            g.setColor(Color.ORANGE);
+            g.fillOval(xc - circleSize, yc - circleSize, circleSize * 2, circleSize * 2);
+        } else if (this.cs != null && s) {
             g.setColor(Color.green);
             g.fillOval(xc - circleSize, yc - circleSize, circleSize * 2, circleSize * 2);
         } else {
@@ -88,8 +99,8 @@ public class SubCircuitElm extends ChipElm {
     }
 
     public void setInternalCircuitSimulator(CircuitSimulator cs) {
-        if (this.cs != null) {
-            System.out.println(this.cs.getParent());
+        if (this.cs != null && !this.cs.isStopped()) {
+            CircuitController.reset(this.cs);
         }
         this.cs = cs;
     }
@@ -166,6 +177,7 @@ public class SubCircuitElm extends ChipElm {
     }
 
     public void execute() {
+
         if (postCount == pins.length) {
 
             int k = 0;
@@ -173,15 +185,22 @@ public class SubCircuitElm extends ChipElm {
             for (MyLogicInputElm i : inputs) {
                 if (i.getPosition() != (pins[k].value ? 1 : 0)) {
                     i.setPosition(pins[k].value ? 1 : 0);
+                    i.setSubCir(true);
+                    i.setVInput(volts[k]);
                 }
                 k++;
             }
             for (MyLogicOutputElm o : outputs) {
-                pins[k].value = "H".equals(o.getValue());
+//                pins[k].value = "H".equals(o.getValue());
+                sim.updateVoltageSource(0, nodes[k], pins[k].voltSource, o.getVoltageDiff());
                 k++;
             }
 
         }
+
+//        if (parent == null) {
+//            System.out.println(currentSim.isStopped() + " " + cs.isStopped() + " " + this.hashCode());
+//        }
 //        pins[0].value = (pins[2].value ^ pins[3].value) ^ pins[4].value;
 //        pins[1].value = (pins[2].value && pins[3].value) || (pins[2].value && pins[4].value)
 //                || (pins[3].value && pins[4].value);
@@ -245,11 +264,38 @@ public class SubCircuitElm extends ChipElm {
                 if (circuitModule.getName().equals(name)) {
                     circuit = circuitModule.getText();
                     CircuitSimulator cs = VolimetricCircuitEditor.createCS2(circuit);
+
+                    for (int i = 0; i < cs.elmListSize(); i++) {
+                        CircuitElm elm = cs.getElm(i);
+                        if (elm instanceof SubCircuitElm) {
+                            SubCircuitElm subCircuitElm = (SubCircuitElm) elm;
+                            subCircuitElm.parent = this;
+                        }
+                    }
+
                     cs.setStopped(false);
                     setInternalCircuitSimulator(cs);
                     setupPins();
                     allocNodes();
                     setPoints();
+
+                    new Thread("ThreadThatWaitForCurrentSimToStart" + Thread.activeCount() + 1) {
+                        @Override
+                        public void run() {
+                            while (true) {
+                                try {
+                                    Thread.sleep(200);
+                                    if (true) {
+                                        //CircuitController.reset(SubCircuitElm.this.cs);
+                                        SubCircuitElm.this.cs.setStopped(!SubCircuitElm.this.cs.isUnstable());
+                                    }
+                                } catch (Exception ex) {
+                                    ex.printStackTrace();
+                                }
+                            }
+                        }
+                    }.start();
+
 //                    try {
 //                        Thread.sleep(300);
 //                    } catch (InterruptedException ex) {

@@ -302,10 +302,18 @@ public class Circuit {
     }
 
     public void printDOT() {
+//        for (Connection c : edges) {
+//            String s = c.getSubComponent();
+//            System.out.println(c.getA().getID() + ";" + c.getB().getID() + ";" + c.getSubComponent());
+//        }
         for (Component c : nodes) {
-            for (Connection con : c.getConnections()){
-                System.out.println(c.getID() + ";" + con.getOtherComponent(c).getID());
+            for (Connection con : c.getConnections()) {
+                System.out.println(c.getID() + ";" + con.getOtherComponent(c).getID() + ";" + con.getSubComponent());
             }
+        }
+
+        for (Component c : nodes) {
+            System.out.println("." + c.getID() + ";" + c.getName());
         }
     }
 

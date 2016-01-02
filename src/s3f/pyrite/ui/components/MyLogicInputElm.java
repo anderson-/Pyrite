@@ -9,6 +9,8 @@ import java.util.StringTokenizer;
 public class MyLogicInputElm extends LogicInputElm {
 
     String name;
+    private double v;
+    private boolean subCir;
 
     public MyLogicInputElm(int xx, int yy) {
         super(xx, yy);
@@ -55,6 +57,23 @@ public class MyLogicInputElm extends LogicInputElm {
         updateDotCount();
         drawDots(g, point1, lead1, curcount);
         drawPosts(g);
+    }
+
+    public void setVInput(double v) {
+        if (v != this.v) {
+            System.out.println(v + " " + this.v);
+            currentSim.setUnstable(true);
+        }
+        this.v = v;
+    }
+
+    public void setSubCir(boolean s) {
+        subCir = s;
+    }
+
+    public void stamp() {
+        double w = (position == 0) ? loV : hiV;
+        sim.stampVoltageSource(0, nodes[0], voltSource, subCir ? v : w);
     }
 
     @Override

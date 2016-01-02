@@ -674,29 +674,29 @@ public class VolimetricCircuitEditor extends DockingWindowAdapter implements Edi
             while (mod) {
                 mod = false;
                 for (Component a : cir.getComponents()) {
-                    if (!a.isConsumed()) {
+                    if (!a.isConsumed() && a.isCoupler()) {
                         ArrayList<Connection> newCons = new ArrayList<>();
                         for (Iterator<Connection> aConIt = a.getConnections().iterator(); aConIt.hasNext();) {
                             Connection c = aConIt.next();
                             if (!c.isConsumed() && c.isShort()) {
                                 Component b = c.getOtherComponent(a);
                                 if (!b.isConsumed() && b.isCoupler() && b.whut == null) {
-                                    b.removeConnection(c);
-                                    int ter = c.getTerminal(a);
-                                    c.softConsume();
-                                    for (Connection con : b.getConnections()) {
-                                        con.replace(b, a);
-                                        con.setTerminal(a, ter);
-                                        newCons.add(con);
+                                        b.removeConnection(c);
+                                        int ter = c.getTerminal(a);
+                                        c.softConsume();
+                                        for (Connection con : b.getConnections()) {
+                                            con.replace(b, a);
+                                            con.setTerminal(a, ter);
+                                            newCons.add(con);
+                                        }
+                                        b.setConsumed(true);
+                                        aConIt.remove();
+                                        sleep();
+                                        mod = true;
+                                        break;
                                     }
-                                    b.setConsumed(true);
-                                    aConIt.remove();
-                                    sleep();
-                                    mod = true;
-                                    break;
                                 }
                             }
-                        }
                         for (Connection con : newCons) {
                             a.addConnection(con);
                         }
@@ -1000,14 +1000,12 @@ public class VolimetricCircuitEditor extends DockingWindowAdapter implements Edi
             public Paint transform(Connection c) {
                 if (c.isConsumed()) {
                     return Color.LIGHT_GRAY;
+                } else if (c.whut == null) {
+                    return Color.BLACK;
+                } else if (c.whut instanceof WireElm) {
+                    return Color.BLUE;
                 } else {
-                    if (c.whut == null) {
-                        return Color.BLACK;
-                    } else if (c.whut instanceof WireElm) {
-                        return Color.BLUE;
-                    } else {
-                        return Color.CYAN.darker();
-                    }
+                    return Color.CYAN.darker();
                 }
             }
         });
