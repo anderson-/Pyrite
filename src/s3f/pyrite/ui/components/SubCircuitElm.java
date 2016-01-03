@@ -27,6 +27,7 @@ import s3f.core.project.Element;
 import s3f.core.project.Project;
 import s3f.pyrite.types.CircuitFile;
 import s3f.pyrite.ui.VolimetricCircuitEditor;
+import s3f.pyrite.ui.circuitsim.SimBuilder;
 
 /**
  *
@@ -263,7 +264,7 @@ public class SubCircuitElm extends ChipElm {
                 CircuitFile circuitModule = (CircuitFile) e;
                 if (circuitModule.getName().equals(name)) {
                     circuit = circuitModule.getText();
-                    CircuitSimulator cs = VolimetricCircuitEditor.createCS2(circuit);
+                    CircuitSimulator cs = SimBuilder.newHiddenSim(circuit, true);
 
                     for (int i = 0; i < cs.elmListSize(); i++) {
                         CircuitElm elm = cs.getElm(i);

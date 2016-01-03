@@ -23,6 +23,8 @@ import s3f.core.project.Element;
 import s3f.core.project.editormanager.TextFile;
 import s3f.core.ui.tab.TabProperty;
 import s3f.pyrite.core.Circuit;
+import s3f.pyrite.ui.circuitsim.CircuitDOTParser;
+import s3f.pyrite.ui.circuitsim.SimBuilder;
 import s3f.pyrite.ui.components.DigitalLogicTester;
 import s3f.pyrite.ui.components.MyLogicInputElm;
 import s3f.pyrite.ui.components.MyLogicOutputElm;
@@ -38,8 +40,6 @@ public class CircuitEditor implements Editor {
     private final Data data;
     private final CircuitSimulator circuitSimulator;
     private TextFile circuit;
-
-    public Circuit C = null;
 
     public CircuitEditor() {
         data = new Data("editorTab", "s3f.core.code", "Editor Tab");
@@ -67,125 +67,21 @@ public class CircuitEditor implements Editor {
             public void actionPerformed(ActionEvent ae) {
                 new Thread() {
                     public void run() {
-                        Circuit cir = VolimetricCircuitEditor.parseString(circuitSimulator.dumpCircuit());
+                        Circuit cir = CircuitDOTParser.parse(circuitSimulator);
                         cir.printDOT();
-                        C = cir;
-                    }
-                }.start();
-            }
-        });
-        JButton convertAndRunButton = new JButton("Convert and run!");
-        convertAndRunButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                new Thread() {
-                    public void run() {
-                        Circuit cir = VolimetricCircuitEditor.parseString(circuitSimulator.dumpCircuit());
-                        C = cir;
-                        VolimetricCircuitEditor.createCS(VolimetricCircuitEditor.dumpCircuit(cir));
-                    }
-                }.start();
-            }
-        });
-        final JSpinner animTimestep = new JSpinner();
-        animTimestep.setModel(new SpinnerNumberModel(300, 0, 10000, 10));
-        animTimestep.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent ce) {
-                VolimetricCircuitEditor.SLEEP = (int) animTimestep.getValue();
-            }
-        });
-        JButton convertAndAnimate = new JButton("Animate!");
-        convertAndAnimate.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                new Thread() {
-                    public void run() {
-                        int d = VolimetricCircuitEditor.DEBUG;
-                        VolimetricCircuitEditor.DEBUG = 0;
-                        VolimetricCircuitEditor.SLEEP = (int) animTimestep.getValue();
-                        Circuit cir = VolimetricCircuitEditor.parseString(circuitSimulator.dumpCircuit(), true);
-                        C = cir;
-                        VolimetricCircuitEditor.createCS(VolimetricCircuitEditor.dumpCircuit(cir));
-                        VolimetricCircuitEditor.DEBUG = d;
-                        VolimetricCircuitEditor.SLEEP = 0;
-                        animTimestep.setValue(0);
-                    }
-                }.start();
-            }
-        });
-        JButton COPY = new JButton("copy");
-        COPY.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                new Thread() {
-                    public void run() {
-                        Circuit cir = VolimetricCircuitEditor.parseString(circuitSimulator.dumpCircuit());
-                        C = cir.copy();
-                    }
-                }.start();
-            }
-        });
-        JButton run = new JButton("Run");
-        run.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                new Thread() {
-                    public void run() {
-                        VolimetricCircuitEditor.createCS(VolimetricCircuitEditor.dumpCircuit(C));
+                        
+                        SimBuilder.newWindowSim(cir);
                     }
                 }.start();
             }
         });
         window.getContentPane().add(debugLevel);
         window.getContentPane().add(convertButton);
-        window.getContentPane().add(convertAndRunButton);
-        window.getContentPane().add(animTimestep);
-        window.getContentPane().add(convertAndAnimate);
-        window.getContentPane().add(run);
-        window.getContentPane().add(COPY);
 //        window.pack();
 //        window.setSize(new Dimension(600, 600));
         TabProperty.put(data, "Editor", null, "Editor de código", window);
     }
 
-//    private class CycleFinder {
-//
-//        private int i = 0;
-//        private ArrayList<Connection> visited = new ArrayList<>();
-//
-//        public CycleFinder(Circuit c) {
-//            Connection start = c.getConnections().get(0);
-//            parseRings(start, start.getA());
-//            for (Connection con : c.getConnections()) {
-//                if (!visited.contains(con)) {
-//                    System.out.println("FAIL " + c.getConnections().size() + "x" + visited.size());
-//                    break;
-//                }
-//            }
-//        }
-//
-//        private void parseRings(Connection it, Component last) {
-//            if (visited.contains(it)) {
-//                return;
-//            }
-//            System.out.println(it);
-//            i++;
-//            Component next;
-//            do {
-//                next = it.getOtherComponent(last);
-//                visited.add(it);
-//                
-//                
-//                
-//            } while (next.getOtherConnection(it) != null);
-//            
-//            for (Connection c : next.getConnections()) {
-//                parseRings(c, last);
-//            }
-//        }
-//
-//    }
     @Override
     public void setContent(Element content) {
         if (content instanceof TextFile) {
