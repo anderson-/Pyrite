@@ -30,6 +30,7 @@ public class ForceDirectedGraphFoldingAlgorithm implements FoldingAlgorithm {
 
     @Override
     public void fold(Circuit circuit) {
+        H.reset();
         for (Component n : circuit.getComponents()) {
             n.setPos(new Vector(100));
             n.setFixed(false);

@@ -39,6 +39,8 @@ public interface ConvexUniformHoneycomb {
     public Component getNode(Vector point);
 
     public void setNodePlaced(Vector point, Component node);
+    
+    public void reset();
 
     public List<Vector> getNeighborhood(Vector point);
 

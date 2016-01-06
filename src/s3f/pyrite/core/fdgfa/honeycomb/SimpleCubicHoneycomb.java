@@ -28,8 +28,8 @@ public class SimpleCubicHoneycomb implements ConvexUniformHoneycomb {
     private final double spaceDiagonalLength;
     private final double cellVolume;
     private final boolean useOctree;
-    private final HashMap<Vector, Component> hashmap;
-    private final HDIntervalTree<Component> octree;
+    private HashMap<Vector, Component> hashmap;
+    private HDIntervalTree<Component> octree;
 
     public SimpleCubicHoneycomb(boolean allowAxis, boolean allowFaceDiagonal, boolean allowSpaceDiagonal, double edgeLength, boolean useOctree) {
         this.allowAxis = allowAxis;
@@ -110,6 +110,17 @@ public class SimpleCubicHoneycomb implements ConvexUniformHoneycomb {
             octree.addPoint(node, point.getX(), point.getY(), point.getZ());
         } else {
             hashmap.put(point, node);
+        }
+    }
+
+    @Override
+    public void reset() {
+        if (useOctree) {
+            octree = new HDIntervalTree<>(3);
+            hashmap = null;
+        } else {
+            octree = null;
+            hashmap = new HashMap<>();
         }
     }
 
