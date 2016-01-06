@@ -1,4 +1,4 @@
-package s3f.pyrite.core.intervaltree;
+package s3f.pyrite.util.intervaltree;
 
 /**
  * The Interval class maintains an interval with some associated data
@@ -8,29 +8,29 @@ package s3f.pyrite.core.intervaltree;
  */
 public class Interval<Type> implements Comparable<Interval<Type>> {
 
-	private long start;
-	private long end;
+	private double start;
+	private double end;
 	private Type data;
 	
-	public Interval(long start, long end, Type data) {
+	public Interval(double start, double end, Type data) {
 		this.start = start;
 		this.end = end;
 		this.data = data;
 	}
 
-	public long getStart() {
+	public double getStart() {
 		return start;
 	}
 
-	public void setStart(long start) {
+	public void setStart(double start) {
 		this.start = start;
 	}
 
-	public long getEnd() {
+	public double getEnd() {
 		return end;
 	}
 
-	public void setEnd(long end) {
+	public void setEnd(double end) {
 		this.end = end;
 	}
 
@@ -46,7 +46,7 @@ public class Interval<Type> implements Comparable<Interval<Type>> {
 	 * @param time
 	 * @return	true if this interval contains time (inclusive)
 	 */
-	public boolean contains(long time) {
+	public boolean contains(double time) {
 		return time <= end && time >= start;
 	}
 	

@@ -1,4 +1,4 @@
-package s3f.pyrite.core.intervaltree;
+package s3f.pyrite.util.intervaltree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +48,7 @@ public class IntervalTree<Type> {
      * @param time the time to stab
      * @return	the data associated with all intervals that contain time
      */
-    public List<Type> get(long time) {
+    public List<Type> get(double time) {
         List<Interval<Type>> intervals = getIntervals(time);
         List<Type> result = new ArrayList<Type>();
         for (Interval<Type> interval : intervals) {
@@ -64,7 +64,7 @@ public class IntervalTree<Type> {
      * @param time the time to stab
      * @return	all intervals that contain time
      */
-    public List<Interval<Type>> getIntervals(long time) {
+    public List<Interval<Type>> getIntervals(double time) {
         build();
         return head.stab(time);
     }
@@ -77,7 +77,7 @@ public class IntervalTree<Type> {
      * @param end	the end of the interval to check
      * @return	the data associated with all intervals that intersect target
      */
-    public List<Type> get(long start, long end) {
+    public List<Type> get(double start, double end) {
         List<Interval<Type>> intervals = getIntervals(start, end);
         List<Type> result = new ArrayList<Type>();
         for (Interval<Type> interval : intervals) {
@@ -94,7 +94,7 @@ public class IntervalTree<Type> {
      * @param end	the end of the interval to check
      * @return	all intervals that intersect target
      */
-    public List<Interval<Type>> getIntervals(long start, long end) {
+    public List<Interval<Type>> getIntervals(double start, double end) {
         build();
         return head.query(new Interval<Type>(start, end, null));
     }
@@ -118,7 +118,7 @@ public class IntervalTree<Type> {
      * @param end	the end of the interval
      * @param data	the data to associate
      */
-    public void addInterval(long begin, long end, Type data) {
+    public void addInterval(double begin, double end, Type data) {
         intervalList.add(new Interval<Type>(begin, end, data));
         inSync = false;
     }

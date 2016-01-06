@@ -7,7 +7,7 @@ package s3f.pyrite.core;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Vector;
+import s3f.pyrite.util.Vector;
 
 /**
  *
@@ -23,15 +23,17 @@ public class Component extends Fixable {
     public int distance;
     private String name;
     private Object data;
-    private int[] pos;
+    private Vector pos;
     private boolean coupler = false;
-    private Vector<Connection> conns;
-    private Vector<Component> shortcut;
+    private java.util.Vector<Connection> conns;
+    private java.util.Vector<Component> shortcut;
+    private Object property;
 
     public Component(String name, Object data) {
         uid = ID++;
-        conns = new Vector<>();
-        shortcut = new Vector<>();
+        conns = new java.util.Vector<>();
+        shortcut = new java.util.Vector<>();
+        pos = new Vector(100);//random
         this.name = name;
         this.data = data;
     }
@@ -43,6 +45,14 @@ public class Component extends Fixable {
     public Component() {
         this("", null);
         coupler = true;
+    }
+
+    public <T> T getProperty() {
+        return (T) property;
+    }
+
+    public void setProperty(Object p) {
+        property = p;
     }
 
     public Connection createConnection(Component c) {
@@ -101,12 +111,12 @@ public class Component extends Fixable {
         return shortcut;
     }
 
-    public int[] getPos() {
+    public Vector getPos() {
         return pos;
     }
 
-    public void setPos(int... pos) {
-        this.pos = pos;
+    public void setPos(Vector pos) {
+        this.pos.setPos(pos);
     }
 
     public boolean isCoupler() {
@@ -145,7 +155,7 @@ public class Component extends Fixable {
 
     @Override
     public String toString() {
-        return (coupler ? "+'{" : "+{") + uid + " |" + name + ", '" + data + "', " + Arrays.toString(pos) + ", c = " + conns.size() + ", s = " + shortcut.size() + "}" + "." + whut + ".";
+        return (coupler ? "+'{" : "+{") + uid + " |" + name + ", '" + data + "', " + pos + ", c = " + conns.size() + ", s = " + shortcut.size() + "}" + "." + whut + ".";
     }
 
     public Connection appendAndConsume(Component c) {
@@ -184,9 +194,7 @@ public class Component extends Fixable {
         nc.uid = uid;
         nc.name = name;
         nc.data = data;
-        if (pos != null) {
-            nc.pos = Arrays.copyOf(pos, 3);
-        }
+        nc.pos = new Vector(pos);
         nc.coupler = coupler;
         nc.whut = whut;
         return nc;

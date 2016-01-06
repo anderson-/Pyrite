@@ -90,6 +90,10 @@ public class Connection extends Fixable {
         this.terminalB = terminalB;
     }
 
+    public double getLength() {
+        return a.getPos().distance(b.getPos());
+    }
+
     @Override
     public void setConsumed(boolean consumed) {
         super.setConsumed(consumed);

@@ -1,4 +1,4 @@
-package s3f.pyrite.core.intervaltree;
+package s3f.pyrite.util.intervaltree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.Map.Entry;
 public class IntervalNode<Type> {
 
 	private SortedMap<Interval<Type>, List<Interval<Type>>> intervals;
-	private long center;
+	private double center;
 	private IntervalNode<Type> leftNode;
 	private IntervalNode<Type> rightNode;
 	
@@ -31,14 +31,14 @@ public class IntervalNode<Type> {
 		
 		intervals = new TreeMap<Interval<Type>, List<Interval<Type>>>();
 		
-		SortedSet<Long> endpoints = new TreeSet<Long>();
+		SortedSet<Double> endpoints = new TreeSet<Double>();
 		
 		for(Interval<Type> interval: intervalList) {
 			endpoints.add(interval.getStart());
 			endpoints.add(interval.getEnd());
 		}
 		
-		long median = getMedian(endpoints);
+		double median = getMedian(endpoints);
 		center = median;
 		
 		List<Interval<Type>> left = new ArrayList<Interval<Type>>();
@@ -70,7 +70,7 @@ public class IntervalNode<Type> {
 	 * @param time the time to query at
 	 * @return	   all intervals containing time
 	 */
-	public List<Interval<Type>> stab(long time) {		
+	public List<Interval<Type>> stab(double time) {		
 		List<Interval<Type>> result = new ArrayList<Interval<Type>>();
 
 		for(Entry<Interval<Type>, List<Interval<Type>>> entry : intervals.entrySet()) {
@@ -111,11 +111,11 @@ public class IntervalNode<Type> {
 		return result;
 	}
 	
-	public long getCenter() {
+	public double getCenter() {
 		return center;
 	}
 
-	public void setCenter(long center) {
+	public void setCenter(double center) {
 		this.center = center;
 	}
 
@@ -139,10 +139,10 @@ public class IntervalNode<Type> {
 	 * @param set the set to look on
 	 * @return	  the median of the set, not interpolated
 	 */
-	private Long getMedian(SortedSet<Long> set) {
+	private Double getMedian(SortedSet<Double> set) {
 		int i = 0;
 		int middle = set.size() / 2;
-		for(Long point : set) {
+		for(Double point : set) {
 			if(i == middle)
 				return point;
 			i++;

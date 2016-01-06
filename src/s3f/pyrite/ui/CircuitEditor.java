@@ -5,6 +5,7 @@
  */
 package s3f.pyrite.ui;
 
+import s3f.pyrite.ui.graphmonitor.VolumetricCircuit3DEditor;
 import com.falstad.circuit.CircuitSimulator;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,8 +24,8 @@ import s3f.core.project.Element;
 import s3f.core.project.editormanager.TextFile;
 import s3f.core.ui.tab.TabProperty;
 import s3f.pyrite.core.Circuit;
-import s3f.pyrite.ui.circuitsim.CircuitDOTParser;
-import s3f.pyrite.ui.circuitsim.SimBuilder;
+import s3f.pyrite.core.circuitsim.CircuitDOTParser;
+import s3f.pyrite.core.circuitsim.SimBuilder;
 import s3f.pyrite.ui.components.DigitalLogicTester;
 import s3f.pyrite.ui.components.MyLogicInputElm;
 import s3f.pyrite.ui.components.MyLogicOutputElm;
@@ -53,14 +54,6 @@ public class CircuitEditor implements Editor {
 
         window.setJMenuBar(circuitSimulator.getGUI().createGUI(false));
         circuitSimulator.posInit();
-        final JSpinner debugLevel = new JSpinner();
-        debugLevel.setModel(new SpinnerNumberModel(VolimetricCircuitEditor.DEBUG, 0, VolimetricCircuitEditor.DEBUG, 1));
-        debugLevel.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent ce) {
-                VolimetricCircuitEditor.DEBUG = (int) debugLevel.getValue();
-            }
-        });
         JButton convertButton = new JButton("Convert!");
         convertButton.addActionListener(new ActionListener() {
             @Override
@@ -75,7 +68,6 @@ public class CircuitEditor implements Editor {
                 }.start();
             }
         });
-        window.getContentPane().add(debugLevel);
         window.getContentPane().add(convertButton);
 //        window.pack();
 //        window.setSize(new Dimension(600, 600));

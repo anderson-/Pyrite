@@ -26,8 +26,8 @@ import s3f.core.plugin.SimulableElement;
 import s3f.core.project.Element;
 import s3f.core.project.Project;
 import s3f.pyrite.types.CircuitFile;
-import s3f.pyrite.ui.VolimetricCircuitEditor;
-import s3f.pyrite.ui.circuitsim.SimBuilder;
+import s3f.pyrite.ui.graphmonitor.VolumetricCircuit3DEditor;
+import s3f.pyrite.core.circuitsim.SimBuilder;
 
 /**
  *

@@ -13,7 +13,8 @@ import s3f.core.project.Element;
 import s3f.core.project.Resource;
 import s3f.core.project.editormanager.TextFile;
 import s3f.pyrite.core.Circuit;
-import s3f.pyrite.ui.VolimetricCircuitEditor;
+import s3f.pyrite.ui.graphmonitor.VolumetricCircuit2DEditor;
+import s3f.pyrite.ui.graphmonitor.VolumetricCircuit3DEditor;
 
 /**
  *
@@ -28,7 +29,7 @@ public class VolumetricCircuit extends ComplexElement implements TextFile {
     private Circuit circuit;
 
     public VolumetricCircuit() {
-        super("Empty Volumetric Circuit", "/resources/icons/silk/brick.png", FLOWCHART_FILES, new Class[]{VolimetricCircuitEditor.class});
+        super("Empty Volumetric Circuit", "/resources/icons/silk/brick.png", FLOWCHART_FILES, new Class[]{VolumetricCircuit3DEditor.class, VolumetricCircuit2DEditor.class});
     }
 
     @Override

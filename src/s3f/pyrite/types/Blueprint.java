@@ -13,7 +13,7 @@ import s3f.core.project.Editor;
 import s3f.core.project.Element;
 import s3f.core.project.Resource;
 import s3f.core.project.editormanager.TextFile;
-import s3f.pyrite.ui.VolimetricCircuitEditor;
+import s3f.pyrite.ui.graphmonitor.VolumetricCircuit3DEditor;
 import s3f.pyrite.ui.BlueprintEditor;
 
 /**

@@ -22,6 +22,7 @@ import s3f.pyrite.core.Circuit;
 import s3f.pyrite.core.Component;
 import s3f.pyrite.types.Blueprint;
 import s3f.pyrite.types.VolumetricCircuit;
+import s3f.pyrite.util.Vector;
 
 /**
  *
@@ -117,11 +118,11 @@ public class BlueprintEditor extends PApplet implements Editor {
             color(0);
             for (int j = -1; j <= 1; j++) {
                 for (Component c : circuit.getComponents()) {
-                    int[] pos = c.getPos();
-                    if (pos != null && pos[2] == page + j) {
+                    Vector pos = c.getPos();
+                    if (pos != null && pos.getZ() == page + j) {
                         pushMatrix();
 
-                        translate(pos[0] * k + pos[2] * 20, pos[1] * k + pos[2] * 20);
+                        translate((float) pos.getX() * k + (float) pos.getZ() * 20, (float) pos.getY() * k + (float) pos.getZ() * 20);
                         ellipse(-13, -13, 26, 26);
                         popMatrix();
                     }

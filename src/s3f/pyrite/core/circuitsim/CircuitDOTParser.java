@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package s3f.pyrite.ui.circuitsim;
+package s3f.pyrite.core.circuitsim;
 
 import com.falstad.circuit.CircuitElm;
 import com.falstad.circuit.CircuitNode;
@@ -21,8 +21,8 @@ import javax.swing.JOptionPane;
 import s3f.pyrite.core.Circuit;
 import s3f.pyrite.core.Component;
 import s3f.pyrite.core.Connection;
-import s3f.pyrite.ui.VolimetricCircuitEditor;
-import s3f.pyrite.ui.circuitsim.SimBuilder;
+import s3f.pyrite.ui.graphmonitor.VolumetricCircuit3DEditor;
+import s3f.pyrite.core.circuitsim.SimBuilder;
 import s3f.pyrite.ui.components.SubCircuitElm;
 import s3f.util.Parser;
 

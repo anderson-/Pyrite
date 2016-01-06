@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package s3f.pyrite.ui.circuitsim;
+package s3f.pyrite.core.circuitsim;
 
 import com.falstad.circuit.CircuitElm;
 import com.falstad.circuit.CircuitSimulator;

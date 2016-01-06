@@ -5,11 +5,7 @@
  */
 package s3f.pyrite.ui;
 
-import java.awt.Color;
-import java.awt.ComponentOrientation;
 import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.annotation.Annotation;
@@ -17,8 +13,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
@@ -131,7 +125,7 @@ public class ConfigurationTab {
             CustomComponent customComponent = (CustomComponent) annotation;
             for (Method method : obj.getClass().getDeclaredMethods()) {
                 method.setAccessible(true);
-                if (method.getReturnType().isAssignableFrom(JComponent.class) && method.getName().equals(customComponent.method())) {
+                if (JComponent.class.isAssignableFrom(method.getReturnType()) && method.getName().equals(customComponent.method())) {
                     JComponent c = (JComponent) method.invoke(obj);
                     return c;
                 }

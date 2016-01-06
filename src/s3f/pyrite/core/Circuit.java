@@ -121,12 +121,12 @@ public class Circuit {
         p.com = new ArrayList<>();
         int i = 0;
         for (Component c : nodes) {
-            ArrayList<Long> pos = new ArrayList<>();
+            ArrayList<Double> pos = new ArrayList<>();
             p.com.add(i);
             if (c.getPos() != null) {
-                pos.add(new Long(c.getPos()[0]));
-                pos.add(new Long(c.getPos()[1]));
-                pos.add(new Long(c.getPos()[2]));
+                pos.add(c.getPos().getX());
+                pos.add(c.getPos().getY());
+                pos.add(c.getPos().getZ());
             }
             p.pos.add(pos);
             i++;
@@ -144,11 +144,7 @@ public class Circuit {
         int i = 0;
         for (Component c : nodes) {
             if (p.pos.get(i).size() == 3) {
-                int[] pos = new int[3];
-                pos[0] = p.pos.get(i).get(0).intValue();
-                pos[1] = p.pos.get(i).get(1).intValue();
-                pos[2] = p.pos.get(i).get(2).intValue();
-                c.setPos(pos);
+                c.setPos(new s3f.pyrite.util.Vector(p.pos.get(i).get(0), p.pos.get(i).get(1), p.pos.get(i).get(2)));
             } else {
                 c.setPos(null);
             }
@@ -230,7 +226,6 @@ public class Circuit {
         for (Connection con : sub.getConnections()) {
             addConnection(con);
         }
-
     }
 
     public void clean() {
@@ -319,7 +314,7 @@ public class Circuit {
 
     public static class POJO {
 
-        public List<List<Long>> pos;
+        public List<List<Double>> pos;
         public List<Integer> com;
     }
 }

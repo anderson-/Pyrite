@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package s3f.pyrite.core.intervaltree;
+package s3f.pyrite.util.intervaltree;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -27,7 +27,7 @@ public class HDIntervalTree<Type> {//Higher Dimension
         }
     }
 
-    public List<Type> get(long[] p1, long[] p2) {
+    public List<Type> get(double[] p1, double[] p2) {
         if (p1.length < dim || p2.length < dim) {
             throw new Error("invalid point length");
         }
@@ -56,7 +56,7 @@ public class HDIntervalTree<Type> {//Higher Dimension
         return result;
     }
 
-    public List<Type> get(long... pos) {
+    public List<Type> get(double... pos) {
         if (pos.length < dim) {
             throw new Error("invalid point length");
         }
@@ -99,7 +99,7 @@ public class HDIntervalTree<Type> {//Higher Dimension
         }
     }
 
-    public void addInterval(long[] p1, long[] p2, Type data) {
+    public void addInterval(double[] p1, double[] p2, Type data) {
         if (p1.length < dim || p2.length < dim) {
             throw new Error("invalid point length");
         }
@@ -110,7 +110,7 @@ public class HDIntervalTree<Type> {//Higher Dimension
         }
     }
 
-    public void addPoint(Type data, long... p) {
+    public void addPoint(Type data, double... p) {
         if (p.length < dim) {
             throw new Error("invalid point length");
         }
@@ -133,8 +133,8 @@ public class HDIntervalTree<Type> {//Higher Dimension
     public static void quickTest() {
         HDIntervalTree<Integer> tree = new HDIntervalTree<>(2);
 
-        tree.addInterval(new long[]{2, 18}, new long[]{10, 24}, 1);
-        tree.addInterval(new long[]{6, 10}, new long[]{18, 20}, 2);
+        tree.addInterval(new double[]{2, 18}, new double[]{10, 24}, 1);
+        tree.addInterval(new double[]{6, 10}, new double[]{18, 20}, 2);
 
         for (int r : tree.get(8, 20)) {
             System.out.println(r);
@@ -142,18 +142,19 @@ public class HDIntervalTree<Type> {//Higher Dimension
     }
 
     public static void heavyTest() {
-        Random rand = new Random(3);
+        Random rand = new Random();
         int dim = 3;
-        int points = 60;
+        int points = 600;
         int maxValue = 10;
 
         HDIntervalTree<Integer> tree = new HDIntervalTree<>(dim);
 
         for (int i = 0; i < points; i++) {
-            long[] p = new long[dim];
+            double[] p = new double[dim];
             for (int j = 0; j < dim; j++) {
-                p[j] = rand.nextInt(maxValue);
+                p[j] = rand.nextInt(maxValue)/Math.PI;
             }
+            System.out.println(i + " : " + java.util.Arrays.toString(p));
             tree.addPoint(i, p);
         }
 
@@ -161,8 +162,8 @@ public class HDIntervalTree<Type> {//Higher Dimension
 //            tree.build();
 //            System.out.println(tree);
 //        }
-        long t = System.currentTimeMillis();
-        List<Integer> res = tree.get(new long[]{0, 0, 0}, new long[]{0, 0, 0});
+        double t = System.currentTimeMillis();
+        List<Integer> res = tree.get(new double[]{0, 0, 0}, new double[]{0, 0, 0});
         System.out.println("t:" + (System.currentTimeMillis() - t) * 10);
         for (int r : res) {
             System.out.println(r);
