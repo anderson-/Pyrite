@@ -167,13 +167,19 @@ public class GraphUtils {
     }
 //TODO:
 
-    public static Component addNodeBetween(Circuit graph, Component n1, Component n2, Component newNode) {
+    public static Component addNodeBetween(Circuit g, Component c, Component b, Component n) {
 //        graph.disconnect(n1, n2);
 //        newNode.setPos(n1.getPos().midpoint(n2.getPos()));
 //        graph.addNode(newNode);
 //        graph.connect(n1, newNode, 100);
 //        graph.connect(n2, newNode, 100);
 //        return newNode;
-        throw new RuntimeException("Not implemented yet");
+        n.setPos(c.getPos().midpoint(b.getPos()));
+        g.addComponent(n);
+        c.getConnection(b).replaceDeep(b, n);
+
+        Connection ncon = new Connection(n, b);
+        g.addConnection(ncon);
+        return n;
     }
 }

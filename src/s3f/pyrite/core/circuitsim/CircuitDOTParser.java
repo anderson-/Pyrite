@@ -50,8 +50,8 @@ public class CircuitDOTParser implements Parser<String, String> {
         return sb.toString();
     }
 
-    public static Circuit parseFromFile(String file) {
-        return parse(SimBuilder.newHiddenSim(file, false));
+    public static Circuit parseFromFile(String fileData) {
+        return parse(SimBuilder.newHiddenSim(fileData, false));
     }
 
     public static Circuit parse(CircuitSimulator cs) {

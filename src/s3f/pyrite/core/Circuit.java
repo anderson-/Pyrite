@@ -144,9 +144,9 @@ public class Circuit {
         int i = 0;
         for (Component c : nodes) {
             if (p.pos.get(i).size() == 3) {
-                c.setPos(new s3f.pyrite.util.Vector(p.pos.get(i).get(0), p.pos.get(i).get(1), p.pos.get(i).get(2)));
+//                c.setPos(new s3f.pyrite.util.Vector(p.pos.get(i).get(0), p.pos.get(i).get(1), p.pos.get(i).get(2)));
             } else {
-                c.setPos(null);
+                c.setPos(new s3f.pyrite.util.Vector(100));
             }
             i++;
         }
@@ -248,6 +248,7 @@ public class Circuit {
     }
 
     public void setStatus(String status) {
+        System.out.println(status);
         if (status != null) {
             this.status = status;
         }

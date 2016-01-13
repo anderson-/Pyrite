@@ -148,6 +148,17 @@ public class Connection extends Fixable {
         }
     }
 
+    public void replaceDeep(Component c, Component other) {
+        if (a == c) {
+            a.removeConnection(this);
+            setA(other);
+        } else {
+            b.removeConnection(this);
+            setB(other);
+        }
+        other.addConnection(this);
+    }
+
     public void setTerminal(Component c, int terminal) {
         if (a == c) {
             setTerminalA(terminal);

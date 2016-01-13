@@ -30,10 +30,19 @@ public class ForceDirectedGraphFoldingAlgorithm implements FoldingAlgorithm {
 
     @Override
     public void fold(Circuit circuit) {
+//        while (GraphUtils.countUnsolvedConnections(circuit, H) >1) {
+
         H.reset();
-        for (Component n : circuit.getComponents()) {
-            n.setPos(new Vector(100));
-            n.setFixed(false);
+        synchronized (circuit) {
+            for (Component n : new ArrayList<>(circuit.getComponents())) {
+                n.setPos(new Vector(100));
+                n.setFixed(false);
+                if (n.getName().equals("asdw")) {
+                    //cunsume
+                    n.getConnections().get(0).getOtherComponent(n).appendAndConsume(n);
+                }
+                circuit.clean();
+            }
         }
         ForceDirectedGraphSimulation sim = new ForceDirectedGraphSimulation(circuit);
         sim.runSimulation();
@@ -42,6 +51,7 @@ public class ForceDirectedGraphFoldingAlgorithm implements FoldingAlgorithm {
 
         GraphFolder.fold(circuit, sim, new GreedyStrategy(H, weights), H);
         sim.kill();
+//        }
     }
 
     public void fold2(Circuit circuit) {

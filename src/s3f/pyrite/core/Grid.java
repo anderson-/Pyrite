@@ -236,7 +236,8 @@ public abstract class Grid {
                 for (int i = -1; i <= 1; i++) {
                     for (int j = -1; j <= 1; j++) {
                         for (int k = -1; k <= 1; k++) {
-                            a.add(DefaultGridFittingTool.rand.nextBoolean());
+//                            a.add(DefaultGridFittingTool.rand.nextBoolean());
+                            throw new RuntimeException("Not implemented");
                         }
                     }
                 }

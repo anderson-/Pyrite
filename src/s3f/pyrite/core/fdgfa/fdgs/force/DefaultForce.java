@@ -31,11 +31,8 @@ public class DefaultForce implements ForceComputer {
             // uberforces
             force = force.multiply(maxRepulsion / force.absoluteValue());
         }
-
         return force;
     }
-    double k = 2;
-    public static double G = 0;
 
     // sum of attractive forces to all adjacencies
     @Override
@@ -45,7 +42,7 @@ public class DefaultForce implements ForceComputer {
         for (Connection con : node.getAdjacencies()) {
             attraction = node.getPos().add(con.getOtherComponent(node.getComponent()).getPos().invert()); // force = a-b
             attraction = attraction.multiply(1 / Math.pow(attraction.absoluteValue(), 0.5)); // normalize
-            force = force.add(attraction.multiply(10 /*con.getWeight()*/));
+            force = force.add(attraction.multiply(20 /*con.getWeight()*/));
         }
         return force.invert();
     }

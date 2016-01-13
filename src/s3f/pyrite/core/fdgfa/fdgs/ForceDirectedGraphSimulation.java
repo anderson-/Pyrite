@@ -128,7 +128,7 @@ public class ForceDirectedGraphSimulation {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        
+
         if (flatMode) {
             for (Component node : circuit.getComponents()) {
                 node.getPos().setZ(0);
@@ -142,13 +142,16 @@ public class ForceDirectedGraphSimulation {
 
     }
 
-    public boolean isEqu(){
-        return (tick.get() > 7 && getKE() < 50);
+    public boolean isEqu() {
+        return (tick.get() > 7 && getKE() < 5000);
     }
-    
+
     public double getKE() {
         double ke = 0;
         for (Component c : circuit.getComponents()) {
+            if (c.getProperty() == null) {
+                c.setProperty(new ParticleProperty(c, c.getUID(), Color.yellow));
+            }
             ke += ((ParticleProperty) c.getProperty()).getKE();
         }
         return ke;

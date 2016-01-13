@@ -58,6 +58,16 @@ public class GreedyStrategy implements FoldingStrategy {
                 }
             }
         }
+
+        if (sel == null) {
+            for (Connection e : g.getConnections()) {
+                if (!honeycomb.isSatisfied(e)) {
+                    sel = e;
+                    break;
+                }
+            }
+        }
+
 //        d = Double.MAX_VALUE;
 //        if (sel == null) {
 //            for (Edge e : g.getEdges()) {
@@ -72,7 +82,6 @@ public class GreedyStrategy implements FoldingStrategy {
 //                }
 //            }
 //        }
-
         return sel;
     }
 
@@ -135,7 +144,7 @@ public class GreedyStrategy implements FoldingStrategy {
                 perception[i + size] = 0;
             } else if (e.getA().isFixed() && e.getB().isFixed()) {
                 perception[i] = 0;
-                perception[i + size] = 0;//e.getLength() / (v.distance(fixed.getPos()) + v.distance(e.getOther(fixed).getPos()));
+                perception[i + size] = (v.distance(fixed.getPos()) + v.distance(e.getOtherComponent(fixed).getPos()));
 
             } else {
 
@@ -205,6 +214,8 @@ public class GreedyStrategy implements FoldingStrategy {
             Component newNode = GraphUtils.addNodeBetween(g, fixed, e.getOtherComponent(fixed), new Component());
             newNode.setFixed(true);
             newNode.setPos(pos);
+            newNode.setName("asdw");
+            newNode.setCoupler(true);
             honeycomb.setNodePlaced(pos, newNode);
         } else {
             //fixNode
