@@ -161,7 +161,7 @@ public class GraphMonitor3D implements Graph3D {
             String label = e.getSubComponent();
 
             gl.glLineWidth(2f);
-            if (ForceDirectedGraphFoldingAlgorithm.H.isSatisfied(e)) {
+            if (circuit.isSatisfied() || ForceDirectedGraphFoldingAlgorithm.H.isSatisfied(e)) {
                 gl.glPushMatrix();
                 DrawingPanel3D.rotateAndGoToMidPoint(gl, new float[]{(float) p.getX(), (float) p.getY(), (float) p.getZ()}, new float[]{(float) p2.getX(), (float) p2.getY(), (float) p2.getZ()});
                 if (label != null) {

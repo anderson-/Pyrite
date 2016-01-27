@@ -20,6 +20,8 @@
 package s3f.pyrite.core.fdgfa.fdgs;
 
 import java.awt.Color;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import s3f.pyrite.core.Circuit;
 import s3f.pyrite.core.Component;
 import s3f.pyrite.core.fdgfa.fdgs.force.DefaultForce;
@@ -46,6 +48,10 @@ public class ForceDirectedGraphSimulation {
         this.circuit = circuit;
     }
 
+    public void setFlatMode(boolean flatMode) {
+        this.flatMode = flatMode;
+    }
+    
     public Circuit getGraph() {
         return circuit;
     }
@@ -96,6 +102,15 @@ public class ForceDirectedGraphSimulation {
         simThread.start();
         return true;
     }
+    
+    public void waitSim(){
+        if (simThread != null && simThread.isAlive()) {
+            try {
+                simThread.join();
+            } catch (InterruptedException ex) {
+            }
+        }
+    }
 
     public void kill() {
         kill = true;
@@ -129,12 +144,12 @@ public class ForceDirectedGraphSimulation {
             e.printStackTrace();
         }
 
+        totalforce = affectForces(forces);
         if (flatMode) {
             for (Component node : circuit.getComponents()) {
                 node.getPos().setZ(0);
             }
         }
-        totalforce = affectForces(forces);
 
         if (tick.get() > 7 && getKE() < 1500) { //refine calculations
             threads = 1;
@@ -143,7 +158,7 @@ public class ForceDirectedGraphSimulation {
     }
 
     public boolean isEqu() {
-        return (tick.get() > 7 && getKE() < 5000);
+        return (tick.get() > 7 && getKE() < 50000);
     }
 
     public double getKE() {

@@ -32,6 +32,7 @@ public class Circuit {
     private final Vector<Component> outputs;
     private final Vector<Circuit> subCircuits;
     private String status = "";
+    private boolean satisfied;
 
     public Circuit() {
         edges = new Vector<>();
@@ -311,6 +312,14 @@ public class Circuit {
         for (Component c : nodes) {
             System.out.println("." + c.getID() + ";" + c.getName());
         }
+    }
+
+    public void setSatisfied(boolean satisfied){
+        this.satisfied = satisfied;
+    }
+    
+    public boolean isSatisfied() {
+        return satisfied;
     }
 
     public static class POJO {

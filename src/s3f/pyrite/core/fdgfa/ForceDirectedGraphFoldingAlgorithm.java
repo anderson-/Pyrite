@@ -25,6 +25,7 @@ import s3f.pyrite.util.Vector;
  */
 public class ForceDirectedGraphFoldingAlgorithm implements FoldingAlgorithm {
 
+    public static double[] weights = new double[]{0.05, 0.15, 0.1, 0.7, 0.0};
     private static final int edgeLen = 16;
     public static final ConvexUniformHoneycomb H = new SimpleCubicHoneycomb(edgeLen, true);
 
@@ -47,7 +48,6 @@ public class ForceDirectedGraphFoldingAlgorithm implements FoldingAlgorithm {
         ForceDirectedGraphSimulation sim = new ForceDirectedGraphSimulation(circuit);
         sim.runSimulation();
         GraphFolder.waitForEqui(sim);
-        double[] weights = new double[]{0.05, 0.15, 0.1, 0.7, 0.0};
 
         GraphFolder.fold(circuit, sim, new GreedyStrategy(H, weights), H);
         sim.kill();

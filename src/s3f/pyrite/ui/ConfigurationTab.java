@@ -39,6 +39,11 @@ public class ConfigurationTab {
     }
 
     @Retention(RetentionPolicy.RUNTIME)
+    public @interface BreakLine {
+
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
     public @interface CustomComponent {
 
         public String method();
@@ -46,6 +51,14 @@ public class ConfigurationTab {
 
     @Retention(RetentionPolicy.RUNTIME)
     public @interface TrackValue {
+
+        public long interval();
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface TrackValueLabel {
+
+        public String name();
 
         public long interval();
     }
@@ -91,18 +104,47 @@ public class ConfigurationTab {
     }
 
     public void build(Object parameters, Container panel) {
+        JPanel dontBreakLinePanel = null;
+        boolean dontBreakLine = false;
         for (Field field : parameters.getClass().getDeclaredFields()) {
             field.setAccessible(true);
             for (Annotation annotation : field.getDeclaredAnnotations()) {
+                if (annotation instanceof DontBreakLine) {
+                    if (dontBreakLinePanel == null) {
+                        dontBreakLinePanel = new JPanel();
+                    }
+                    dontBreakLine = true;
+                    continue;
+                } else if (annotation instanceof BreakLine) {
+                    if (dontBreakLinePanel != null) {
+                        panel.add(dontBreakLinePanel);
+                        dontBreakLinePanel = null;
+                    }
+                    dontBreakLine = false;
+                    continue;
+                }
+
                 try {
                     JComponent c = createJComponent(annotation, field, parameters);
                     if (c != null) {
-                        panel.add(c);
+                        if (dontBreakLine) {
+                            dontBreakLinePanel.add(c);
+                            dontBreakLine = false;
+                        } else {
+                            if (dontBreakLinePanel != null) {
+                                panel.add(dontBreakLinePanel);
+                                dontBreakLinePanel = null;
+                            }
+                            panel.add(c);
+                        }
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
+        }
+        if (dontBreakLinePanel != null) {
+            panel.add(dontBreakLinePanel);
         }
     }
 
@@ -151,6 +193,22 @@ public class ConfigurationTab {
                 }
             });
             return c;
+        } else if (annotation instanceof TrackValueLabel) {
+            final JLabel label = new JLabel();
+            final TrackValueLabel trackValue = (TrackValueLabel) annotation;
+            new Thread() {
+                @Override
+                public void run() {
+                    while (true) {
+                        try {
+                            label.setText(trackValue.name() + field.get(obj));
+                            Thread.sleep(trackValue.interval());
+                        } catch (Exception ex) {
+                        }
+                    }
+                }
+            }.start();
+            return label;
         } else if (annotation instanceof Spinner) {
             Spinner spinner = (Spinner) annotation;
             JPanel p = new JPanel();
