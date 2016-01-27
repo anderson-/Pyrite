@@ -32,6 +32,10 @@ public class Connection extends Fixable {
         satisfied = false;
     }
 
+    public int getID() {
+        return uid;
+    }
+
     public Connection(Component a, int terminalA, Component b, int terminalB, String subComponent) {
         this(subComponent);
         this.a = a;

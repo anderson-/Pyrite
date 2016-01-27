@@ -22,6 +22,7 @@ public class TempTestWindow {
 
     @CustomComponent(method = "buildAsd")
     public String s = "sjadh";
+    Thread t = null;
 
     public JButton buildAsd() {
         return new JButton(new AbstractAction("Hello") {
@@ -29,13 +30,16 @@ public class TempTestWindow {
             public void actionPerformed(ActionEvent ae) {
 //                ForceDirectedGraphSimulation s = new ForceDirectedGraphSimulation(circuit);
 //                s.runSimulation(1000, 10);
-                new Thread("Fold Thread") {
-                    @Override
-                    public void run() {
-                        new ForceDirectedGraphFoldingAlgorithm().fold(circuit);
-                    }
+                if (t == null || !t.isAlive()) {
+                    t = new Thread("Fold Thread") {
+                        @Override
+                        public void run() {
+                            new ForceDirectedGraphFoldingAlgorithm().fold(circuit);
+                        }
 
-                }.start();
+                    };
+                    t.start();
+                }
             }
         });
     }

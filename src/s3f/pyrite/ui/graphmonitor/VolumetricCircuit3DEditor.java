@@ -5,7 +5,13 @@
  */
 package s3f.pyrite.ui.graphmonitor;
 
+import java.awt.BorderLayout;
+import java.awt.Frame;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JProgressBar;
 import javax.swing.JRootPane;
+import javax.swing.SwingUtilities;
 import net.infonode.docking.DockingWindow;
 import net.infonode.docking.DockingWindowAdapter;
 import s3f.core.plugin.Data;
@@ -29,6 +35,7 @@ public class VolumetricCircuit3DEditor extends DockingWindowAdapter implements E
     private final Data data;
     private VolumetricCircuit volumetricCircuitFile;
     private GraphMonitor3D drawingPanel;
+    private String lastcircuit = "";
     private float[] eye = null;
 
     public VolumetricCircuit3DEditor() {
@@ -53,22 +60,36 @@ public class VolumetricCircuit3DEditor extends DockingWindowAdapter implements E
         }
 
         if (c != null) {
-            final CircuitFile C = c;
-            new Thread() {
-                @Override
-                public void run() {
-                    TextFile textFile = C;
-                    Circuit circuit;
-                    if (!textFile.getText().isEmpty()) {
-                        circuit = CircuitDOTParser.parseFromFile(textFile.getText());
+            if (!c.getText().equals(lastcircuit)) {
+                lastcircuit = c.getText();
+                new Thread() {
+                    @Override
+                    public void run() {
+                        final JDialog dlgProgress = new JDialog((Frame) null, "Please wait...", true);
+                        JLabel lblStatus = new JLabel("Working..."); // this is just a label in which you can indicate the state of the processing
+                        JProgressBar pbProgress = new JProgressBar(0, 100);
+                        pbProgress.setIndeterminate(true); //we'll use an indeterminate progress bar
+                        dlgProgress.add(BorderLayout.NORTH, lblStatus);
+                        dlgProgress.add(BorderLayout.CENTER, pbProgress);
+                        dlgProgress.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE); // prevent the user from closing the dialog
+                        dlgProgress.setSize(300, 90);
+
+                        SwingUtilities.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                dlgProgress.setLocationRelativeTo(null);
+                                dlgProgress.setVisible(true);
+                            }
+                        });
+
+                        Circuit circuit = CircuitDOTParser.parseFromFile(lastcircuit);
                         new TempTestWindow(circuit);
-                    } else {
-                        circuit = new Circuit();
+                        drawingPanel.setCircuit(circuit);
+                        volumetricCircuitFile.setCircuit(circuit);
+                        dlgProgress.dispose();
                     }
-                    drawingPanel.setCircuit(circuit);
-                    volumetricCircuitFile.setCircuit(circuit);
-                }
-            }.start();
+                }.start();
+            }
             data.setProperty(TabProperty.TITLE, content.getName());
             data.setProperty(TabProperty.ICON, content.getIcon());
         }
@@ -82,12 +103,12 @@ public class VolumetricCircuit3DEditor extends DockingWindowAdapter implements E
 
     @Override
     public void update() {
-//        for (Object o : volumetricCircuitFile.getExternalResources()) {
-//            if (o instanceof TextFile) {
-//                TextFile textFile = (TextFile) o;
-////                setContent(textFile);
-//            }
-//        }
+        for (Object o : volumetricCircuitFile.getExternalResources()) {
+            if (o instanceof TextFile) {
+                TextFile textFile = (TextFile) o;
+                setContent(textFile);
+            }
+        }
     }
 
     @Override
