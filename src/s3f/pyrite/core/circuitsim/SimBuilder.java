@@ -30,7 +30,7 @@ import s3f.pyrite.ui.components.SubCircuitElm;
 public class SimBuilder {
 
     //simulador escondido
-    public static CircuitSimulator newHiddenSim(String text, boolean run) {
+    public static CircuitSimulator newHiddenSim(String text, boolean run, boolean dummy) {
         JApplet window = new JApplet();
         final CircuitSimulator cs = new CircuitSimulator(!run);
         cs.setStopped(!run);
@@ -42,11 +42,14 @@ public class SimBuilder {
             cs.register(SubCircuitElm.class);
             cs.register(DigitalLogicTester.class);
         }
+        if (dummy) {
+            cs.setDisabled();
+        }
         cs.init();
         window.setJMenuBar(cs.getGUI().createGUI(true));
         cs.posInit();
 
-        if (!run) {
+        if (!run && !dummy) {
             cs.analyzeCircuit();
             for (int i = 0; i < 30; i++) {
                 cs.updateCircuit(null);
@@ -84,7 +87,7 @@ public class SimBuilder {
     }
 
     public static CircuitSimulator newWindowSim(Circuit circuit) {
-        CircuitSimulator cs = newHiddenSim("", false);
+        CircuitSimulator cs = newHiddenSim("", false, false);
 
         HashMap<Component, Point> pointMap = new HashMap<>();
 

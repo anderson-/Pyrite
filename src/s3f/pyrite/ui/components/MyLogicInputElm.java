@@ -62,7 +62,7 @@ public class MyLogicInputElm extends LogicInputElm {
     public void setVInput(double v) {
         if (v != this.v) {
             System.out.println(v + " " + this.v);
-            currentSim.setUnstable(true);
+            sim.setUnstable(true);
         }
         this.v = v;
     }

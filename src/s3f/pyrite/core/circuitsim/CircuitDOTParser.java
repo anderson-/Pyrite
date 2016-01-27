@@ -51,7 +51,7 @@ public class CircuitDOTParser implements Parser<String, String> {
     }
 
     public static Circuit parseFromFile(String fileData) {
-        return parse(SimBuilder.newHiddenSim(fileData, false));
+        return parse(SimBuilder.newHiddenSim(fileData, false, true));
     }
 
     public static Circuit parse(CircuitSimulator cs) {
@@ -241,7 +241,7 @@ public class CircuitDOTParser implements Parser<String, String> {
                 Component c = entry.getValue();
                 long sleep = SLEEP;
                 SLEEP = 0;
-                Circuit sub = parse(SimBuilder.newHiddenSim(subCircuitElm.getCircuit(), false));
+                Circuit sub = parse(SimBuilder.newHiddenSim(subCircuitElm.getCircuit(), false, true));
                 SLEEP = sleep;
                 cir.insert(sub, c);
                 sleep();

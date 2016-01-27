@@ -56,6 +56,13 @@ public class SubCircuitElm extends ChipElm {
         super(xa, ya, xb, yb, f, st);
         if (st.hasMoreTokens()) {
             name = st.nextToken("\0").trim();
+        }
+    }
+
+    @Override
+    public void setSim(CircuitSimulator sim) {
+        super.setSim(sim);
+        if (!name.isEmpty()) {
             reload();
         }
     }
@@ -80,22 +87,23 @@ public class SubCircuitElm extends ChipElm {
         int yc = y;
         int circleSize = 5;
         super.draw(g);
-
-        SubCircuitElm i = this;
-        boolean s = true;
-        while (s && i != null) {
-            s &= isStable(i.cs);
-            i = i.parent;
-        }
-        if (this.cs.isStopped()) {
-            g.setColor(Color.ORANGE);
-            g.fillOval(xc - circleSize, yc - circleSize, circleSize * 2, circleSize * 2);
-        } else if (this.cs != null && s) {
-            g.setColor(Color.green);
-            g.fillOval(xc - circleSize, yc - circleSize, circleSize * 2, circleSize * 2);
-        } else {
-            g.setColor(Color.red);
-            g.fillOval(xc - circleSize, yc - circleSize, circleSize * 2, circleSize * 2);
+        if (cs != null) {
+            SubCircuitElm i = this;
+            boolean s = true;
+            while (s && i != null) {
+                s &= isStable(i.cs);
+                i = i.parent;
+            }
+            if (cs.isStopped()) {
+                g.setColor(Color.ORANGE);
+                g.fillOval(xc - circleSize, yc - circleSize, circleSize * 2, circleSize * 2);
+            } else if (s) {
+                g.setColor(Color.green);
+                g.fillOval(xc - circleSize, yc - circleSize, circleSize * 2, circleSize * 2);
+            } else {
+                g.setColor(Color.red);
+                g.fillOval(xc - circleSize, yc - circleSize, circleSize * 2, circleSize * 2);
+            }
         }
     }
 
@@ -264,7 +272,7 @@ public class SubCircuitElm extends ChipElm {
                 CircuitFile circuitModule = (CircuitFile) e;
                 if (circuitModule.getName().equals(name)) {
                     circuit = circuitModule.getText();
-                    CircuitSimulator cs = SimBuilder.newHiddenSim(circuit, true);
+                    CircuitSimulator cs = SimBuilder.newHiddenSim(circuit, true, false);
 
                     for (int i = 0; i < cs.elmListSize(); i++) {
                         CircuitElm elm = cs.getElm(i);
