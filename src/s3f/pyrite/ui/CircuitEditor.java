@@ -63,7 +63,7 @@ public class CircuitEditor implements Editor {
                         Circuit cir = CircuitDOTParser.parse(circuitSimulator);
                         cir.printDOT();
                         
-                        SimBuilder.newWindowSim(cir);
+//                        SimBuilder.newWindowSim(cir);
                     }
                 }.start();
             }

@@ -7,7 +7,6 @@ import java.util.Scanner;
 import s3f.core.plugin.PluginBuilder;
 import s3f.core.ui.GUIBuilder;
 import static s3f.core.ui.MainUI.createLookAndFeel;
-import s3f.pyrite.types.Blueprint;
 import s3f.pyrite.types.CircuitFile;
 import s3f.pyrite.types.VolumetricCircuit;
 import s3f.util.splashscreen.SimpleSplashScreen;
@@ -39,7 +38,7 @@ public class Builder extends PluginBuilder {
 //        
         pm.registerFactory(CircuitFile.FLOWCHART_FILES);
         pm.registerFactory(VolumetricCircuit.FLOWCHART_FILES);
-        pm.registerFactory(Blueprint.FLOWCHART_FILES);
+//        pm.registerFactory(Blueprint.FLOWCHART_FILES);
     }
 
 }

@@ -424,6 +424,6 @@ public class CircuitDOTParser implements Parser<String, String> {
         }
         CircuitSimulator sim = SimBuilder.newWindowSim(circuitString);
         Circuit cir = parse(sim);
-        SimBuilder.newWindowSim(cir);
+//        SimBuilder.newWindowSim(cir);
     }
 }
